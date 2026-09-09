@@ -45,7 +45,6 @@ export default function ConsultationModal({ isOpen, onClose, defaultService }: C
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    // Save to CRM Lead storage
     saveNewLead({
       fullName: formData.fullName,
       companyName: formData.companyName || 'Undisclosed / New Venture',
@@ -55,7 +54,7 @@ export default function ConsultationModal({ isOpen, onClose, defaultService }: C
       businessStage: formData.businessStage,
       teamSize: formData.teamSize,
       servicesNeeded: formData.servicesNeeded.length > 0 ? formData.servicesNeeded : ['General Business Inquiry'],
-      challenge: formData.challenge || 'Needs end-to-end guidance from People Point.',
+      challenge: formData.challenge || 'Needs end-to-end systems guidance from People Point.',
       expectedTimeline: formData.expectedTimeline,
       consultationMode: formData.consultationMode,
       source: 'Consultation Modal Booking'
@@ -70,13 +69,13 @@ export default function ConsultationModal({ isOpen, onClose, defaultService }: C
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-200">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/70 backdrop-blur-sm animate-in fade-in duration-150">
       <div
-        className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-100 overflow-hidden"
+        className="relative w-full max-w-2xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden"
         onClick={(e) => e.stopPropagation()}
       >
         {/* Header Ribbon */}
-        <div className="bg-gradient-to-r from-brand-navy via-brand-purple to-brand-pink p-6 text-white relative">
+        <div className="bg-slate-900 p-6 text-white relative border-b border-slate-800">
           <button
             onClick={handleClose}
             className="absolute top-5 right-5 p-2 rounded-full bg-white/10 hover:bg-white/20 text-white transition-colors"
@@ -85,28 +84,28 @@ export default function ConsultationModal({ isOpen, onClose, defaultService }: C
             <X className="w-5 h-5" />
           </button>
 
-          <div className="flex items-center gap-2 text-pink-300 text-xs font-bold uppercase tracking-wider mb-1">
+          <div className="flex items-center gap-2 text-rose-400 text-xs font-bold uppercase tracking-wider mb-1">
             <Sparkles className="w-4 h-4" />
             <span>30-Minute Free Business Consultation</span>
           </div>
           <h3 className="text-xl sm:text-2xl font-black text-white">
             Build Your Business. We’ll Build the Systems Behind It.
           </h3>
-          <p className="text-slate-200 text-xs sm:text-sm mt-1">
-            Speak directly with our leadership team (SPOC Kesavan / Keerthika) for structured execution.
+          <p className="text-slate-300 text-xs sm:text-sm mt-1">
+            Directly with our leadership team (SPOC Kesavan / Keerthika) for structured execution.
           </p>
 
           {!submitted && (
-            <div className="flex items-center gap-3 mt-4 text-xs font-semibold text-white/80">
-              <span className={`px-3 py-1 rounded-full ${step === 1 ? 'bg-white text-brand-purple' : 'bg-white/20'}`}>
+            <div className="flex items-center gap-2 mt-4 text-xs font-semibold text-slate-300">
+              <span className={`px-3 py-1 rounded-full ${step === 1 ? 'bg-purple-800 text-white' : 'bg-slate-800'}`}>
                 1. Contact
               </span>
               <span>→</span>
-              <span className={`px-3 py-1 rounded-full ${step === 2 ? 'bg-white text-brand-purple' : 'bg-white/20'}`}>
+              <span className={`px-3 py-1 rounded-full ${step === 2 ? 'bg-purple-800 text-white' : 'bg-slate-800'}`}>
                 2. Business Scope
               </span>
               <span>→</span>
-              <span className={`px-3 py-1 rounded-full ${step === 3 ? 'bg-white text-brand-purple' : 'bg-white/20'}`}>
+              <span className={`px-3 py-1 rounded-full ${step === 3 ? 'bg-purple-800 text-white' : 'bg-slate-800'}`}>
                 3. Timing & Mode
               </span>
             </div>
@@ -148,7 +147,7 @@ export default function ConsultationModal({ isOpen, onClose, defaultService }: C
 
               <div className="pt-4 flex flex-col sm:flex-row justify-center gap-3">
                 <a
-                  href={`https://wa.me/919840000000?text=Hi%20People%20Point%2C%20I%20just%20booked%20a%20consultation%20for%20${encodeURIComponent(formData.companyName || formData.fullName)}.%20Looking%20forward%20to%20our%20discussion.`}
+                  href={`https://wa.me/918807304713?text=Hi%20People%20Point%2C%20I%20just%20booked%20a%20consultation%20for%20${encodeURIComponent(formData.companyName || formData.fullName)}.`}
                   target="_blank"
                   rel="noopener noreferrer"
                   className="px-5 py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-md transition-all"
@@ -164,14 +163,14 @@ export default function ConsultationModal({ isOpen, onClose, defaultService }: C
               </div>
             </div>
           ) : (
-            <form onSubmit={handleSubmit} className="space-y-5">
+            <form onSubmit={handleSubmit} className="space-y-4">
               {/* STEP 1 */}
               {step === 1 && (
-                <div className="space-y-4 animate-in fade-in duration-200">
+                <div className="space-y-4 animate-in fade-in duration-150">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-bold text-slate-700 mb-1">
-                        Full Name <span className="text-brand-pink">*</span>
+                        Full Name <span className="text-rose-600">*</span>
                       </label>
                       <input
                         type="text"
@@ -179,7 +178,7 @@ export default function ConsultationModal({ isOpen, onClose, defaultService }: C
                         placeholder="e.g. Anand Kumar"
                         value={formData.fullName}
                         onChange={(e) => setFormData({ ...formData, fullName: e.target.value })}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-purple/40"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-purple-700"
                       />
                     </div>
                     <div>
@@ -191,7 +190,7 @@ export default function ConsultationModal({ isOpen, onClose, defaultService }: C
                         placeholder="e.g. Apex Innovations Pvt Ltd"
                         value={formData.companyName}
                         onChange={(e) => setFormData({ ...formData, companyName: e.target.value })}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-purple/40"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-purple-700"
                       />
                     </div>
                   </div>
@@ -199,20 +198,20 @@ export default function ConsultationModal({ isOpen, onClose, defaultService }: C
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-bold text-slate-700 mb-1">
-                        Mobile / WhatsApp Number <span className="text-brand-pink">*</span>
+                        Mobile / WhatsApp Number <span className="text-rose-600">*</span>
                       </label>
                       <input
                         type="tel"
                         required
-                        placeholder="+91 98400 00000"
+                        placeholder="+91 88073 04713"
                         value={formData.phone}
                         onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-purple/40"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-purple-700"
                       />
                     </div>
                     <div>
                       <label className="block text-xs font-bold text-slate-700 mb-1">
-                        Business Email <span className="text-brand-pink">*</span>
+                        Business Email <span className="text-rose-600">*</span>
                       </label>
                       <input
                         type="email"
@@ -220,7 +219,7 @@ export default function ConsultationModal({ isOpen, onClose, defaultService }: C
                         placeholder="anand@company.com"
                         value={formData.email}
                         onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-purple/40"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-purple-700"
                       />
                     </div>
                   </div>
@@ -231,10 +230,10 @@ export default function ConsultationModal({ isOpen, onClose, defaultService }: C
                     </label>
                     <input
                       type="text"
-                      placeholder="e.g. Chennai, India / San Francisco, USA"
+                      placeholder="e.g. Chennai, India / California, USA"
                       value={formData.city}
                       onChange={(e) => setFormData({ ...formData, city: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-purple/40"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-purple-700"
                     />
                   </div>
 
@@ -243,7 +242,7 @@ export default function ConsultationModal({ isOpen, onClose, defaultService }: C
                       type="button"
                       disabled={!formData.fullName || !formData.phone || !formData.email}
                       onClick={() => setStep(2)}
-                      className="px-6 py-2.5 rounded-xl bg-brand-navy hover:bg-brand-navyLight disabled:opacity-50 text-white font-bold text-xs flex items-center gap-2 transition-all"
+                      className="px-6 py-2.5 rounded-xl bg-purple-900 hover:bg-purple-800 disabled:opacity-50 text-white font-bold text-xs flex items-center gap-2 transition-all"
                     >
                       <span>Continue to Business Scope</span>
                       <ArrowRight className="w-4 h-4" />
@@ -254,7 +253,7 @@ export default function ConsultationModal({ isOpen, onClose, defaultService }: C
 
               {/* STEP 2 */}
               {step === 2 && (
-                <div className="space-y-4 animate-in fade-in duration-200">
+                <div className="space-y-4 animate-in fade-in duration-150">
                   <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                     <div>
                       <label className="block text-xs font-bold text-slate-700 mb-1">
@@ -263,7 +262,7 @@ export default function ConsultationModal({ isOpen, onClose, defaultService }: C
                       <select
                         value={formData.businessStage}
                         onChange={(e) => setFormData({ ...formData, businessStage: e.target.value })}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-purple/40 bg-white"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-purple-700 bg-white"
                       >
                         <option value="First-Time Founder (Idea / Pre-registration)">First-Time Founder (Idea / Pre-registration)</option>
                         <option value="Startup / Small Business (1 - 25 team)">Startup / Small Business (1 - 25 team)</option>
@@ -280,7 +279,7 @@ export default function ConsultationModal({ isOpen, onClose, defaultService }: C
                       <select
                         value={formData.teamSize}
                         onChange={(e) => setFormData({ ...formData, teamSize: e.target.value })}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-purple/40 bg-white"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-purple-700 bg-white"
                       >
                         <option value="Just Founders (1 - 3)">Just Founders (1 - 3)</option>
                         <option value="4 - 10 employees">4 - 10 employees</option>
@@ -305,12 +304,12 @@ export default function ConsultationModal({ isOpen, onClose, defaultService }: C
                             onClick={() => handleToggleService(s.title)}
                             className={`p-2.5 rounded-xl border text-left text-xs transition-all flex items-center justify-between ${
                               isSelected
-                                ? 'bg-purple-50/80 border-brand-purple text-brand-purple font-semibold shadow-sm'
+                                ? 'bg-purple-50 border-purple-800 text-purple-900 font-bold shadow-xs'
                                 : 'bg-white border-slate-200 text-slate-700 hover:border-slate-300'
                             }`}
                           >
                             <span>{s.title}</span>
-                            {isSelected && <CheckCircle2 className="w-4 h-4 text-brand-purple shrink-0" />}
+                            {isSelected && <CheckCircle2 className="w-4 h-4 text-purple-800 shrink-0" />}
                           </button>
                         );
                       })}
@@ -328,7 +327,7 @@ export default function ConsultationModal({ isOpen, onClose, defaultService }: C
                     <button
                       type="button"
                       onClick={() => setStep(3)}
-                      className="px-6 py-2.5 rounded-xl bg-brand-navy hover:bg-brand-navyLight text-white font-bold text-xs flex items-center gap-2 transition-all"
+                      className="px-6 py-2.5 rounded-xl bg-purple-900 hover:bg-purple-800 text-white font-bold text-xs flex items-center gap-2 transition-all"
                     >
                       <span>Continue to Final Details</span>
                       <ArrowRight className="w-4 h-4" />
@@ -339,17 +338,17 @@ export default function ConsultationModal({ isOpen, onClose, defaultService }: C
 
               {/* STEP 3 */}
               {step === 3 && (
-                <div className="space-y-4 animate-in fade-in duration-200">
+                <div className="space-y-4 animate-in fade-in duration-150">
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1">
                       Current Business Challenge or Objective
                     </label>
                     <textarea
                       rows={3}
-                      placeholder="Briefly describe what you need help with (e.g. Incorporating a Pvt Ltd, creating SOPs, building payroll structure, building our website)..."
+                      placeholder="Briefly describe what you need help with..."
                       value={formData.challenge}
                       onChange={(e) => setFormData({ ...formData, challenge: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-purple/40"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-purple-700"
                     />
                   </div>
 
@@ -361,7 +360,7 @@ export default function ConsultationModal({ isOpen, onClose, defaultService }: C
                       <select
                         value={formData.expectedTimeline}
                         onChange={(e) => setFormData({ ...formData, expectedTimeline: e.target.value })}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-purple/40 bg-white"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-purple-700 bg-white"
                       >
                         <option value="Immediately (within 7 days)">Immediately (within 7 days)</option>
                         <option value="Within 2 to 4 weeks">Within 2 to 4 weeks</option>
@@ -377,7 +376,7 @@ export default function ConsultationModal({ isOpen, onClose, defaultService }: C
                       <select
                         value={formData.consultationMode}
                         onChange={(e) => setFormData({ ...formData, consultationMode: e.target.value })}
-                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-sm focus:outline-none focus:ring-2 focus:ring-brand-purple/40 bg-white"
+                        className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm focus:outline-none focus:ring-2 focus:ring-purple-700 bg-white"
                       >
                         <option value="Google Meet Video Call">Google Meet Video Call</option>
                         <option value="Direct Phone Call">Direct Phone Call</option>
@@ -387,9 +386,9 @@ export default function ConsultationModal({ isOpen, onClose, defaultService }: C
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-2 text-xs text-slate-500 bg-slate-50 p-3 rounded-xl border border-slate-200">
+                  <div className="flex items-center gap-2 text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200">
                     <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
-                    <span>Your details are strictly confidential. We never share or sell client information.</span>
+                    <span>Your details are strictly confidential under enterprise non-disclosure.</span>
                   </div>
 
                   <div className="pt-2 flex justify-between">
@@ -402,7 +401,7 @@ export default function ConsultationModal({ isOpen, onClose, defaultService }: C
                     </button>
                     <button
                       type="submit"
-                      className="px-6 py-3 rounded-xl bg-gradient-to-r from-brand-purple to-brand-pink hover:opacity-95 text-white font-bold text-xs sm:text-sm shadow-md flex items-center gap-2 transition-all"
+                      className="px-6 py-3 rounded-xl bg-gradient-to-r from-purple-800 to-rose-600 hover:opacity-95 text-white font-bold text-xs sm:text-sm shadow-md flex items-center gap-2 transition-all"
                     >
                       <Calendar className="w-4 h-4" />
                       <span>Confirm & Schedule Consultation</span>

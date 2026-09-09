@@ -18,19 +18,19 @@ import {
   Workflow,
   TrendingUp,
   ArrowRight,
-  ShieldCheck,
-  Calendar
+  Calendar,
+  MessageCircle
 } from 'lucide-react';
 import { solutions } from '@/data/solutions';
 
 const iconMap: Record<string, React.ReactNode> = {
-  Building2: <Building2 className="w-5 h-5 text-brand-purple" />,
-  Users: <Users className="w-5 h-5 text-brand-pink" />,
-  Receipt: <Receipt className="w-5 h-5 text-brand-purple" />,
-  Code2: <Code2 className="w-5 h-5 text-brand-pink" />,
-  FileSpreadsheet: <FileSpreadsheet className="w-5 h-5 text-brand-purple" />,
-  Workflow: <Workflow className="w-5 h-5 text-brand-pink" />,
-  TrendingUp: <TrendingUp className="w-5 h-5 text-brand-purple" />,
+  Building2: <Building2 className="w-5 h-5 text-purple-700" />,
+  Users: <Users className="w-5 h-5 text-rose-600" />,
+  Receipt: <Receipt className="w-5 h-5 text-purple-700" />,
+  Code2: <Code2 className="w-5 h-5 text-rose-600" />,
+  FileSpreadsheet: <FileSpreadsheet className="w-5 h-5 text-purple-700" />,
+  Workflow: <Workflow className="w-5 h-5 text-rose-600" />,
+  TrendingUp: <TrendingUp className="w-5 h-5 text-purple-700" />,
 };
 
 interface NavbarProps {
@@ -51,7 +51,6 @@ export default function Navbar({ onOpenConsultation }: NavbarProps) {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  // Close menus on route change
   useEffect(() => {
     setMobileMenuOpen(false);
     setSolutionsOpen(false);
@@ -59,38 +58,37 @@ export default function Navbar({ onOpenConsultation }: NavbarProps) {
 
   return (
     <>
-      {/* Top Notification Strip */}
-      <div className="bg-brand-navy text-slate-300 text-xs py-2 px-4 border-b border-slate-800">
+      {/* Top Corporate Strip */}
+      <div className="bg-slate-900 text-slate-300 text-xs py-2 px-4 border-b border-slate-800">
         <div className="max-w-7xl mx-auto flex flex-col sm:flex-row justify-between items-center gap-2">
-          <div className="flex items-center gap-4">
-            <span className="inline-flex items-center gap-1.5 font-medium text-pink-400">
-              <span className="w-2 h-2 rounded-full bg-pink-500 animate-pulse"></span>
-              Turn Ideas Into Running Businesses
+          <div className="flex items-center gap-3">
+            <span className="inline-flex items-center gap-1.5 font-bold text-rose-400">
+              <span className="w-2 h-2 rounded-full bg-rose-500 animate-pulse"></span>
+              TURN IDEAS INTO RUNNING BUSINESSES
             </span>
-            <span className="hidden md:inline text-slate-500">|</span>
-            <span className="hidden md:inline text-slate-300">
-              One Partner for Business Setup, People, Payroll, Tech & Growth
+            <span className="hidden md:inline text-slate-600">|</span>
+            <span className="hidden md:inline text-slate-300 font-medium">
+              Setup • HR • Payroll • Compliance • Tech • Operations • Growth
             </span>
           </div>
-          <div className="flex items-center gap-5">
+          <div className="flex items-center gap-4 text-[11px] sm:text-xs">
             <a
-              href="tel:+919840000000"
-              className="flex items-center gap-1.5 hover:text-white transition-colors"
+              href="tel:+918807304713"
+              className="flex items-center gap-1.5 text-slate-200 hover:text-white transition-colors font-medium"
             >
-              <Phone className="w-3.5 h-3.5 text-brand-pink" />
-              <span>+91 98400 00000</span>
+              <Phone className="w-3.5 h-3.5 text-rose-400" />
+              <span>+91 88073 04713</span>
             </a>
             <a
-              href="mailto:contact@peoplepointconsultants.com"
-              className="flex items-center gap-1.5 hover:text-white transition-colors"
+              href="mailto:peoplepointconsultant@gmail.com"
+              className="flex items-center gap-1.5 text-slate-200 hover:text-white transition-colors font-medium"
             >
-              <Mail className="w-3.5 h-3.5 text-brand-purple" />
-              <span className="hidden sm:inline">contact@peoplepointconsultants.com</span>
-              <span className="sm:hidden">Email Us</span>
+              <Mail className="w-3.5 h-3.5 text-purple-400" />
+              <span>peoplepointconsultant@gmail.com</span>
             </a>
             <Link
               href="/admin/leads"
-              className="hidden lg:inline-flex text-xs px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 transition-colors"
+              className="hidden lg:inline-flex text-[11px] px-2.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition-colors"
             >
               CRM Portal
             </Link>
@@ -100,32 +98,33 @@ export default function Navbar({ onOpenConsultation }: NavbarProps) {
 
       {/* Main Sticky Header */}
       <header
-        className={`sticky top-0 z-40 transition-all duration-300 ${
+        className={`sticky top-0 z-40 transition-all duration-200 ${
           isScrolled
-            ? 'bg-white/95 backdrop-blur-md shadow-md py-3 border-b border-slate-100'
-            : 'bg-white py-4 border-b border-slate-100'
+            ? 'bg-white/95 backdrop-blur-md shadow-sm py-2.5 border-b border-slate-200'
+            : 'bg-white py-3.5 border-b border-slate-200/80'
         }`}
       >
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 flex items-center justify-between">
-          {/* Brand Logo */}
-          <Link href="/" className="flex items-center gap-3 group">
-            <div className="relative h-10 w-44 sm:h-12 sm:w-52">
+          {/* Brand Logo - Highly Visible & Sharp */}
+          <Link href="/" className="flex items-center gap-3 shrink-0 py-1">
+            <div className="flex items-center">
               <Image
                 src="/logo.png"
                 alt="People Point Consultants"
-                fill
-                className="object-contain object-left"
+                width={240}
+                height={58}
+                className="h-10 sm:h-12 w-auto object-contain"
                 priority
               />
             </div>
           </Link>
 
           {/* Desktop Navigation */}
-          <nav className="hidden xl:flex items-center gap-6">
+          <nav className="hidden xl:flex items-center gap-7">
             <Link
               href="/"
-              className={`text-sm font-medium transition-colors ${
-                pathname === '/' ? 'text-brand-purple font-semibold' : 'text-slate-700 hover:text-brand-purple'
+              className={`text-sm font-semibold transition-colors ${
+                pathname === '/' ? 'text-purple-800 font-bold border-b-2 border-purple-800 pb-0.5' : 'text-slate-700 hover:text-purple-800'
               }`}
             >
               Home
@@ -138,57 +137,57 @@ export default function Navbar({ onOpenConsultation }: NavbarProps) {
               onMouseLeave={() => setSolutionsOpen(false)}
             >
               <button
-                className={`flex items-center gap-1 text-sm font-medium transition-colors py-2 ${
-                  pathname.startsWith('/solutions') ? 'text-brand-purple font-semibold' : 'text-slate-700 hover:text-brand-purple'
+                className={`flex items-center gap-1 text-sm font-semibold transition-colors py-2 ${
+                  pathname.startsWith('/solutions') ? 'text-purple-800 font-bold' : 'text-slate-700 hover:text-purple-800'
                 }`}
                 onClick={() => setSolutionsOpen(!solutionsOpen)}
               >
                 <span>Solutions</span>
-                <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${solutionsOpen ? 'rotate-180 text-brand-purple' : ''}`} />
+                <ChevronDown className={`w-4 h-4 transition-transform duration-200 ${solutionsOpen ? 'rotate-180 text-purple-800' : 'text-slate-400'}`} />
               </button>
 
               {/* Mega Dropdown Menu */}
               {solutionsOpen && (
-                <div className="absolute top-full left-1/2 -translate-x-1/2 w-[720px] bg-white rounded-2xl shadow-2xl border border-slate-100 p-6 grid grid-cols-2 gap-4 animate-in fade-in slide-in-from-top-2 duration-200">
-                  <div className="col-span-2 pb-2 border-b border-slate-100 flex justify-between items-center">
-                    <span className="text-xs font-semibold uppercase tracking-wider text-slate-400">
+                <div className="absolute top-full left-1/2 -translate-x-1/2 w-[740px] bg-white rounded-2xl shadow-2xl border border-slate-200 p-6 grid grid-cols-2 gap-3.5 animate-in fade-in slide-in-from-top-2 duration-150">
+                  <div className="col-span-2 pb-2.5 border-b border-slate-100 flex justify-between items-center">
+                    <span className="text-xs font-bold uppercase tracking-wider text-slate-500">
                       Our 7 Core Operating Pillars
                     </span>
                     <Link
                       href="/packages"
-                      className="text-xs font-semibold text-brand-purple hover:text-brand-pink flex items-center gap-1"
+                      className="text-xs font-bold text-purple-800 hover:text-rose-600 flex items-center gap-1"
                     >
-                      View All Packages <ArrowRight className="w-3 h-3" />
+                      Compare All Packages <ArrowRight className="w-3.5 h-3.5" />
                     </Link>
                   </div>
                   {solutions.map((item) => (
                     <Link
                       key={item.id}
                       href={`/solutions/${item.slug}`}
-                      className="flex items-start gap-3 p-2.5 rounded-xl hover:bg-slate-50 transition-colors group/item"
+                      className="flex items-start gap-3 p-3 rounded-xl hover:bg-slate-50 transition-colors group/item border border-transparent hover:border-slate-200/80"
                     >
-                      <div className="p-2 rounded-lg bg-purple-50 group-hover/item:bg-purple-100 transition-colors">
+                      <div className="p-2.5 rounded-lg bg-slate-50 border border-slate-100 group-hover/item:bg-purple-50 group-hover/item:border-purple-200 transition-colors shrink-0">
                         {iconMap[item.iconName]}
                       </div>
                       <div>
-                        <div className="text-sm font-semibold text-slate-800 group-hover/item:text-brand-purple flex items-center gap-1.5">
+                        <div className="text-sm font-bold text-slate-900 group-hover/item:text-purple-800">
                           {item.shortTitle}
                         </div>
                         <p className="text-xs text-slate-500 line-clamp-1 mt-0.5">
-                          {item.subheadline}
+                          {item.headline}
                         </p>
                       </div>
                     </Link>
                   ))}
-                  <div className="col-span-2 pt-2 border-t border-slate-100 bg-slate-50 -mx-6 -mb-6 p-4 rounded-b-2xl flex items-center justify-between text-xs">
-                    <span className="text-slate-600 font-medium">
-                      Not sure which solution fits your stage?
+                  <div className="col-span-2 pt-3 border-t border-slate-100 bg-slate-50/80 -mx-6 -mb-6 p-4 rounded-b-2xl flex items-center justify-between text-xs">
+                    <span className="text-slate-700 font-medium">
+                      Not sure which solution fits your business stage?
                     </span>
                     <Link
                       href="/assessment"
-                      className="font-bold text-brand-pink hover:text-brand-purple flex items-center gap-1"
+                      className="font-bold text-rose-600 hover:text-purple-800 flex items-center gap-1"
                     >
-                      Take 2-Min Readiness Diagnostic →
+                      Take 2-Min Business Diagnostic →
                     </Link>
                   </div>
                 </div>
@@ -197,8 +196,8 @@ export default function Navbar({ onOpenConsultation }: NavbarProps) {
 
             <Link
               href="/packages"
-              className={`text-sm font-medium transition-colors ${
-                pathname === '/packages' ? 'text-brand-purple font-semibold' : 'text-slate-700 hover:text-brand-purple'
+              className={`text-sm font-semibold transition-colors ${
+                pathname === '/packages' ? 'text-purple-800 font-bold border-b-2 border-purple-800 pb-0.5' : 'text-slate-700 hover:text-purple-800'
               }`}
             >
               Packages
@@ -206,8 +205,8 @@ export default function Navbar({ onOpenConsultation }: NavbarProps) {
 
             <Link
               href="/how-we-work"
-              className={`text-sm font-medium transition-colors ${
-                pathname === '/how-we-work' ? 'text-brand-purple font-semibold' : 'text-slate-700 hover:text-brand-purple'
+              className={`text-sm font-semibold transition-colors ${
+                pathname === '/how-we-work' ? 'text-purple-800 font-bold border-b-2 border-purple-800 pb-0.5' : 'text-slate-700 hover:text-purple-800'
               }`}
             >
               How We Work
@@ -215,8 +214,8 @@ export default function Navbar({ onOpenConsultation }: NavbarProps) {
 
             <Link
               href="/case-studies"
-              className={`text-sm font-medium transition-colors ${
-                pathname === '/case-studies' ? 'text-brand-purple font-semibold' : 'text-slate-700 hover:text-brand-purple'
+              className={`text-sm font-semibold transition-colors ${
+                pathname === '/case-studies' ? 'text-purple-800 font-bold border-b-2 border-purple-800 pb-0.5' : 'text-slate-700 hover:text-purple-800'
               }`}
             >
               Case Studies
@@ -224,8 +223,8 @@ export default function Navbar({ onOpenConsultation }: NavbarProps) {
 
             <Link
               href="/industries"
-              className={`text-sm font-medium transition-colors ${
-                pathname === '/industries' ? 'text-brand-purple font-semibold' : 'text-slate-700 hover:text-brand-purple'
+              className={`text-sm font-semibold transition-colors ${
+                pathname === '/industries' ? 'text-purple-800 font-bold border-b-2 border-purple-800 pb-0.5' : 'text-slate-700 hover:text-purple-800'
               }`}
             >
               Industries
@@ -233,8 +232,8 @@ export default function Navbar({ onOpenConsultation }: NavbarProps) {
 
             <Link
               href="/about"
-              className={`text-sm font-medium transition-colors ${
-                pathname === '/about' ? 'text-brand-purple font-semibold' : 'text-slate-700 hover:text-brand-purple'
+              className={`text-sm font-semibold transition-colors ${
+                pathname === '/about' ? 'text-purple-800 font-bold border-b-2 border-purple-800 pb-0.5' : 'text-slate-700 hover:text-purple-800'
               }`}
             >
               About Team
@@ -242,8 +241,8 @@ export default function Navbar({ onOpenConsultation }: NavbarProps) {
 
             <Link
               href="/insights"
-              className={`text-sm font-medium transition-colors ${
-                pathname === '/insights' ? 'text-brand-purple font-semibold' : 'text-slate-700 hover:text-brand-purple'
+              className={`text-sm font-semibold transition-colors ${
+                pathname === '/insights' ? 'text-purple-800 font-bold border-b-2 border-purple-800 pb-0.5' : 'text-slate-700 hover:text-purple-800'
               }`}
             >
               Insights
@@ -251,8 +250,8 @@ export default function Navbar({ onOpenConsultation }: NavbarProps) {
 
             <Link
               href="/contact"
-              className={`text-sm font-medium transition-colors ${
-                pathname === '/contact' ? 'text-brand-purple font-semibold' : 'text-slate-700 hover:text-brand-purple'
+              className={`text-sm font-semibold transition-colors ${
+                pathname === '/contact' ? 'text-purple-800 font-bold border-b-2 border-purple-800 pb-0.5' : 'text-slate-700 hover:text-purple-800'
               }`}
             >
               Contact
@@ -261,18 +260,19 @@ export default function Navbar({ onOpenConsultation }: NavbarProps) {
 
           {/* Action CTAs */}
           <div className="hidden sm:flex items-center gap-3">
-            <Link
-              href="https://wa.me/919840000000?text=Hi%20People%20Point%2C%20I%20would%20like%20to%20discuss%20my%20business%20requirements."
+            <a
+              href="https://wa.me/918807304713?text=Hi%20People%20Point%2C%20I%20would%20like%20to%20discuss%20my%20business%20requirements."
               target="_blank"
               rel="noopener noreferrer"
-              className="text-xs font-semibold text-slate-700 hover:text-brand-purple px-3 py-2 rounded-lg border border-slate-200 hover:border-brand-purple/30 transition-all flex items-center gap-1.5"
+              className="text-xs font-bold text-slate-700 hover:text-purple-800 px-3.5 py-2.5 rounded-xl border border-slate-300 hover:border-purple-300 transition-all flex items-center gap-1.5"
             >
+              <MessageCircle className="w-4 h-4 text-emerald-600" />
               <span>Talk to Us</span>
-            </Link>
+            </a>
 
             <button
               onClick={onOpenConsultation}
-              className="text-xs sm:text-sm font-bold bg-gradient-to-r from-brand-purple to-brand-pink text-white px-4 py-2.5 rounded-xl shadow-md hover:shadow-lg hover:opacity-95 transition-all flex items-center gap-2"
+              className="text-xs sm:text-sm font-bold bg-gradient-to-r from-purple-800 via-purple-700 to-rose-600 text-white px-5 py-2.5 rounded-xl shadow-md hover:shadow-lg hover:opacity-95 transition-all flex items-center gap-2"
             >
               <Calendar className="w-4 h-4" />
               <span>Book Consultation</span>
@@ -283,7 +283,7 @@ export default function Navbar({ onOpenConsultation }: NavbarProps) {
           <div className="flex xl:hidden items-center gap-2">
             <button
               onClick={onOpenConsultation}
-              className="sm:hidden text-xs font-bold bg-gradient-to-r from-brand-purple to-brand-pink text-white px-3 py-1.5 rounded-lg"
+              className="sm:hidden text-xs font-bold bg-gradient-to-r from-purple-800 to-rose-600 text-white px-3 py-2 rounded-lg"
             >
               Book Call
             </button>
@@ -299,15 +299,15 @@ export default function Navbar({ onOpenConsultation }: NavbarProps) {
 
         {/* Mobile Navigation Drawer */}
         {mobileMenuOpen && (
-          <div className="xl:hidden bg-white border-t border-slate-100 px-4 pt-3 pb-6 space-y-3 max-h-[80vh] overflow-y-auto">
+          <div className="xl:hidden bg-white border-t border-slate-200 px-4 pt-4 pb-6 space-y-3 max-h-[85vh] overflow-y-auto">
             <Link
               href="/"
-              className="block py-2 text-sm font-semibold text-slate-800 hover:text-brand-purple"
+              className="block py-2 text-sm font-bold text-slate-900 hover:text-purple-800"
             >
               Home
             </Link>
 
-            <div className="border-t border-slate-100 pt-2">
+            <div className="border-t border-slate-100 pt-2.5">
               <div className="text-xs font-bold text-slate-400 uppercase tracking-wider mb-2">
                 Our 7 Solutions
               </div>
@@ -316,7 +316,7 @@ export default function Navbar({ onOpenConsultation }: NavbarProps) {
                   <Link
                     key={item.id}
                     href={`/solutions/${item.slug}`}
-                    className="block py-1.5 text-sm text-slate-700 hover:text-brand-purple"
+                    className="block py-1 text-sm text-slate-700 hover:text-purple-800 font-medium"
                   >
                     • {item.title}
                   </Link>
@@ -324,46 +324,46 @@ export default function Navbar({ onOpenConsultation }: NavbarProps) {
               </div>
             </div>
 
-            <div className="border-t border-slate-100 pt-2 space-y-2">
-              <Link href="/packages" className="block py-1.5 text-sm font-medium text-slate-800">
-                Packages & Pricing
+            <div className="border-t border-slate-100 pt-2.5 space-y-2">
+              <Link href="/packages" className="block py-1 text-sm font-semibold text-slate-800">
+                Packages & Models
               </Link>
-              <Link href="/how-we-work" className="block py-1.5 text-sm font-medium text-slate-800">
+              <Link href="/how-we-work" className="block py-1 text-sm font-semibold text-slate-800">
                 How We Work
               </Link>
-              <Link href="/case-studies" className="block py-1.5 text-sm font-medium text-slate-800">
+              <Link href="/case-studies" className="block py-1 text-sm font-semibold text-slate-800">
                 Case Studies
               </Link>
-              <Link href="/industries" className="block py-1.5 text-sm font-medium text-slate-800">
+              <Link href="/industries" className="block py-1 text-sm font-semibold text-slate-800">
                 Industries Supported
               </Link>
-              <Link href="/about" className="block py-1.5 text-sm font-medium text-slate-800">
-                About & Core Team
+              <Link href="/about" className="block py-1 text-sm font-semibold text-slate-800">
+                About & Leadership Team
               </Link>
-              <Link href="/assessment" className="block py-1.5 text-sm font-medium text-brand-pink font-semibold">
+              <Link href="/assessment" className="block py-1 text-sm font-bold text-rose-600">
                 Business Readiness Quiz →
               </Link>
-              <Link href="/solution-builder" className="block py-1.5 text-sm font-medium text-brand-purple font-semibold">
-                Custom Solution Builder →
+              <Link href="/solution-builder" className="block py-1 text-sm font-bold text-purple-800">
+                Custom Scope Builder →
               </Link>
-              <Link href="/insights" className="block py-1.5 text-sm font-medium text-slate-800">
+              <Link href="/insights" className="block py-1 text-sm font-semibold text-slate-800">
                 Insights & Checklists
               </Link>
-              <Link href="/contact" className="block py-1.5 text-sm font-medium text-slate-800">
+              <Link href="/contact" className="block py-1 text-sm font-semibold text-slate-800">
                 Contact Office
               </Link>
-              <Link href="/admin/leads" className="block py-1.5 text-xs text-slate-500 font-mono">
+              <Link href="/admin/leads" className="block py-1 text-xs text-slate-500 font-mono">
                 CRM Lead Dashboard
               </Link>
             </div>
 
-            <div className="pt-4 space-y-2">
+            <div className="pt-3 border-t border-slate-200">
               <button
                 onClick={() => {
                   setMobileMenuOpen(false);
                   onOpenConsultation?.();
                 }}
-                className="w-full text-center py-3 rounded-xl bg-gradient-to-r from-brand-purple to-brand-pink text-white font-bold text-sm shadow-md"
+                className="w-full text-center py-3 rounded-xl bg-gradient-to-r from-purple-800 to-rose-600 text-white font-bold text-sm shadow-md"
               >
                 Book a Free Business Consultation
               </button>

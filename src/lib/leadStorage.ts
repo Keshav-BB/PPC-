@@ -23,6 +23,15 @@ export interface LeadRecord {
 
 const STORAGE_KEY = 'people_point_crm_leads';
 
+// Security sanitization helper to strip potentially hazardous characters
+function sanitizeInput(str: string): string {
+  if (!str) return '';
+  return str
+    .replace(/[<>]/g, '') // remove HTML tags
+    .trim()
+    .slice(0, 1000); // enforce maximum length
+}
+
 export const initialMockLeads: LeadRecord[] = [
   {
     id: 'PP-1001',
@@ -52,7 +61,7 @@ export const initialMockLeads: LeadRecord[] = [
     businessStage: 'Early Founder',
     teamSize: '1 - 5',
     servicesNeeded: ['Business Setup & Registration', 'Technology Services'],
-    challenge: 'Need Private Limited incorporation, GST registration, and a custom e-commerce web platform.',
+    challenge: 'Need Private Limited incorporation, GST registration, and a custom web platform.',
     expectedTimeline: 'Within 2 to 4 weeks',
     consultationMode: 'Phone Call',
     source: 'Website Hero Form',
@@ -77,24 +86,6 @@ export const initialMockLeads: LeadRecord[] = [
     status: 'Qualified',
     estimatedValue: '₹85,000 One-Time',
     createdAt: '2026-09-08T09:45:00Z'
-  },
-  {
-    id: 'PP-1004',
-    fullName: 'Kavita Chawla',
-    companyName: 'Zenith Edutech',
-    email: 'kavita@zenithedu.io',
-    phone: '+91 97909 33211',
-    city: 'Hyderabad',
-    businessStage: 'Startup / Scaling',
-    teamSize: '11 - 25',
-    servicesNeeded: ['Digital Marketing & Growth'],
-    challenge: 'High cost per acquisition on Google Ads; need a performance marketing review and landing page rebuild.',
-    expectedTimeline: 'Immediately (within 7 days)',
-    consultationMode: 'Google Meet Video Call',
-    source: 'Lead Magnet Download',
-    status: 'New Lead',
-    estimatedValue: '₹35,000 / mo',
-    createdAt: '2026-09-08T18:20:00Z'
   }
 ];
 
@@ -115,14 +106,29 @@ export function getStoredLeads(): LeadRecord[] {
 
 export function saveNewLead(lead: Omit<LeadRecord, 'id' | 'createdAt' | 'status'>): LeadRecord {
   const current = getStoredLeads();
-  const newRecord: LeadRecord = {
-    ...lead,
+  const sanitizedRecord: LeadRecord = {
     id: `PP-${Math.floor(1000 + Math.random() * 9000)}`,
+    fullName: sanitizeInput(lead.fullName),
+    companyName: sanitizeInput(lead.companyName),
+    email: sanitizeInput(lead.email),
+    phone: sanitizeInput(lead.phone),
+    city: sanitizeInput(lead.city),
+    businessStage: sanitizeInput(lead.businessStage),
+    teamSize: sanitizeInput(lead.teamSize),
+    servicesNeeded: lead.servicesNeeded.map((s) => sanitizeInput(s)),
+    challenge: sanitizeInput(lead.challenge),
+    expectedTimeline: sanitizeInput(lead.expectedTimeline),
+    consultationMode: sanitizeInput(lead.consultationMode),
+    source: sanitizeInput(lead.source),
+    utmSource: lead.utmSource ? sanitizeInput(lead.utmSource) : undefined,
+    utmMedium: lead.utmMedium ? sanitizeInput(lead.utmMedium) : undefined,
+    utmCampaign: lead.utmCampaign ? sanitizeInput(lead.utmCampaign) : undefined,
+    estimatedValue: lead.estimatedValue ? sanitizeInput(lead.estimatedValue) : undefined,
     status: 'New Lead',
     createdAt: new Date().toISOString()
   };
 
-  const updated = [newRecord, ...current];
+  const updated = [sanitizedRecord, ...current];
   if (typeof window !== 'undefined') {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
@@ -131,14 +137,18 @@ export function saveNewLead(lead: Omit<LeadRecord, 'id' | 'createdAt' | 'status'
       console.error(e);
     }
   }
-  return newRecord;
+  return sanitizedRecord;
 }
 
 export function updateLeadStatus(id: string, newStatus: LeadRecord['status']) {
   const current = getStoredLeads();
   const updated = current.map((lead) => (lead.id === id ? { ...lead, status: newStatus } : lead));
   if (typeof window !== 'undefined') {
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
-    window.dispatchEvent(new Event('pp_leads_updated'));
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(updated));
+      window.dispatchEvent(new Event('pp_leads_updated'));
+    } catch (e) {
+      console.error(e);
+    }
   }
 }

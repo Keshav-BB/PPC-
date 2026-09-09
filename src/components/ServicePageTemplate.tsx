@@ -75,7 +75,7 @@ export default function ServicePageTemplate({ solution }: ServicePageTemplatePro
               </button>
 
               <a
-                href={`https://wa.me/919840000000?text=${encodeURIComponent(`Hi People Point, I am interested in your ${solution.title} services and would like to discuss my requirements.`)}`}
+                href={`https://wa.me/918807304713?text=${encodeURIComponent(`Hi People Point, I am interested in your ${solution.title} services and would like to discuss my requirements.`)}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-6 py-3.5 rounded-xl border border-slate-300 hover:bg-slate-50 text-slate-700 font-bold text-sm flex items-center gap-2 transition-colors"

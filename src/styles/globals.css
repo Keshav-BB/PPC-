@@ -4,51 +4,57 @@
 
 @layer base {
   :root {
-    --brand-navy: #0C1B33;
-    --brand-purple: #6D28D9;
-    --brand-pink: #EC4899;
+    --brand-navy: #0F172A;
+    --brand-purple: #581C87;
+    --brand-pink: #E11D48;
   }
   
   html {
     scroll-behavior: smooth;
-    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
   }
 
   body {
     background-color: #F8FAFC;
-    color: #0C1B33;
+    color: #1E293B;
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
   }
+
+  h1, h2, h3, h4, h5, h6 {
+    font-family: 'Plus Jakarta Sans', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    letter-spacing: -0.02em;
+    color: #0F172A;
+  }
 }
 
-.gradient-text {
-  background: linear-gradient(135deg, #6D28D9 0%, #EC4899 100%);
+/* Crisp Brand Text Gradient */
+.brand-gradient-text {
+  background: linear-gradient(135deg, #581C87 0%, #E11D48 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
 }
 
-.gradient-text-alt {
-  background: linear-gradient(135deg, #0C1B33 0%, #6D28D9 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
+/* Subtle Dark Header Background */
+.header-glow {
+  background: radial-gradient(circle at 50% 0%, rgba(88, 28, 135, 0.04) 0%, transparent 70%);
 }
 
-.gradient-bg {
-  background: linear-gradient(135deg, #0C1B33 0%, #162847 60%, #3B1C54 100%);
+/* Unified Button Style */
+.btn-primary {
+  background: linear-gradient(135deg, #581C87 0%, #7E22CE 60%, #E11D48 100%);
+  color: #FFFFFF;
+  transition: all 0.2s ease-in-out;
+}
+.btn-primary:hover {
+  opacity: 0.95;
+  transform: translateY(-1px);
+  box-shadow: 0 10px 20px -5px rgba(225, 29, 72, 0.25);
 }
 
-.gradient-card {
-  background: linear-gradient(180deg, rgba(255,255,255,0.9) 0%, rgba(248,250,252,0.95) 100%);
-}
-
-.purple-pink-glow {
-  box-shadow: 0 0 35px -5px rgba(236, 72, 153, 0.25);
-}
-
-/* Custom modern scrollbar */
+/* Modern clean scrollbar */
 ::-webkit-scrollbar {
-  width: 8px;
+  width: 7px;
 }
 ::-webkit-scrollbar-track {
   background: #F1F5F9;

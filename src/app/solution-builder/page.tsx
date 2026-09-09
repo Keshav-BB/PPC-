@@ -112,7 +112,7 @@ export default function SolutionBuilderPage() {
 
             <div className="pt-2">
               <a
-                href={`https://wa.me/919840000000?text=Hi%20People%20Point%2C%20I%20just%20submitted%20my%20custom%20solution%20request%20with%20${selectedServices.length}%20modules.`}
+                href={`https://wa.me/918807304713?text=Hi%20People%20Point%2C%20I%20just%20submitted%20my%20custom%20solution%20request%20with%20${selectedServices.length}%20modules.`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="px-6 py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs inline-flex items-center gap-2 shadow-md transition-all"
@@ -291,7 +291,7 @@ export default function SolutionBuilderPage() {
                   <input
                     type="tel"
                     required
-                    placeholder="+91 98400 00000"
+                    placeholder="+91 88073 04713"
                     value={leadInfo.phone}
                     onChange={(e) => setLeadInfo({ ...leadInfo, phone: e.target.value })}
                     className="w-full p-3 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-brand-purple outline-none"

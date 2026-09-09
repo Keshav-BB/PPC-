@@ -56,7 +56,7 @@ export default function PrivacyPage() {
         <section className="space-y-2">
           <h2 className="text-base font-bold text-slate-900">5. Contacting Us</h2>
           <p>
-            If you have questions regarding this Privacy Policy or wish to request deletion of your information, please contact our administrative office at <a href="mailto:contact@peoplepointconsultants.com" className="text-brand-purple underline font-semibold">contact@peoplepointconsultants.com</a>.
+            If you have questions regarding this Privacy Policy or wish to request deletion of your information, please contact our administrative office at <a href="mailto:peoplepointconsultant@gmail.com" className="text-brand-purple underline font-semibold">peoplepointconsultant@gmail.com</a>.
           </p>
         </section>
       </div>

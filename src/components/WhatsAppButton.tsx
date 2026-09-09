@@ -38,7 +38,7 @@ export default function WhatsAppButton() {
     return 'Hi People Point, I would like to discuss how you can help build and run the systems behind my business.';
   };
 
-  const whatsappUrl = `https://wa.me/919840000000?text=${encodeURIComponent(getContextMessage())}`;
+  const whatsappUrl = `https://wa.me/918807304713?text=${encodeURIComponent(getContextMessage())}`;
 
   return (
     <aside aria-label="WhatsApp quick chat" className="fixed bottom-6 right-6 z-40 hidden sm:block">

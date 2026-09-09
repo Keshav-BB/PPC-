@@ -155,7 +155,7 @@ export default function LeadMagnetModal({ isOpen, onClose, magnet }: LeadMagnetM
                     <input
                       type="tel"
                       required
-                      placeholder="+91 98400..."
+                      placeholder="+91 88073..."
                       value={phone}
                       onChange={(e) => setPhone(e.target.value)}
                       className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-brand-purple outline-none"

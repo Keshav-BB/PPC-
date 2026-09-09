@@ -39,72 +39,72 @@ export default function ContactPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
-          <span className="text-xs font-bold uppercase tracking-wider text-brand-purple block mb-2">
-            Get in Touch
+          <span className="text-xs font-bold uppercase tracking-wider text-purple-800 block mb-2">
+            Direct Leadership Access
           </span>
           <h1 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
-            Speak With Our Leadership Team
+            Speak With Our Partners
           </h1>
           <p className="mt-4 text-base text-slate-600 leading-relaxed">
             Have a question about company setup, employee payroll, custom software, or operations? Our Single Point of Contact (SPOC) is ready to help.
           </p>
         </div>
 
-        <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start max-w-6xl mx-auto">
+        <div className="grid grid-cols-1 lg:grid-cols-12 gap-10 items-start max-w-6xl mx-auto">
           {/* Left Info Column */}
           <div className="lg:col-span-5 space-y-6">
             {/* SPOC Spotlight Card */}
-            <div className="p-6 rounded-3xl bg-brand-navy text-white space-y-4 shadow-xl border border-slate-800">
-              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-pink-500/20 text-pink-300 text-xs font-bold uppercase tracking-wider border border-pink-500/30">
+            <div className="p-7 rounded-3xl bg-slate-900 text-white space-y-4 shadow-xl border border-slate-800">
+              <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-rose-500/20 text-rose-300 text-xs font-bold uppercase tracking-wider border border-rose-500/30">
                 <UserCheck className="w-3.5 h-3.5" />
-                <span>Designated Client SPOC</span>
+                <span>Accountable Client SPOC</span>
               </div>
               <div>
                 <h3 className="text-xl font-black text-white">
                   Kesavan
                 </h3>
-                <div className="text-xs font-bold text-pink-400 mt-0.5">
+                <div className="text-xs font-bold text-rose-400 mt-0.5">
                   Working Partner | SPOC – Business Operations & Execution
                 </div>
-                <p className="text-xs text-slate-300 mt-2 leading-relaxed">
+                <p className="text-xs text-slate-300 mt-2.5 leading-relaxed">
                   Acts as your single point of contact, orchestrating all internal teams across legal, human resources, payroll, tech, and operations.
                 </p>
               </div>
             </div>
 
             {/* Office & Direct Contact Details */}
-            <div className="p-6 rounded-3xl bg-white border border-slate-200 shadow-card space-y-5">
-              <div className="flex items-start gap-3">
-                <div className="p-2.5 rounded-xl bg-purple-50 text-brand-purple shrink-0">
+            <div className="p-7 rounded-3xl bg-white border border-slate-200 shadow-card space-y-5">
+              <div className="flex items-start gap-3.5">
+                <div className="p-2.5 rounded-xl bg-purple-50 text-purple-800 shrink-0">
                   <Phone className="w-5 h-5" />
                 </div>
                 <div>
                   <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
                     Phone & WhatsApp
                   </span>
-                  <a href="tel:+919840000000" className="text-sm font-bold text-slate-900 hover:text-brand-purple">
-                    +91 98400 00000
+                  <a href="tel:+918807304713" className="text-sm font-bold text-slate-900 hover:text-purple-800">
+                    +91 88073 04713
                   </a>
-                  <span className="block text-[11px] text-slate-500">Mon–Sat, 9:30 AM to 6:30 PM IST</span>
+                  <span className="block text-[11px] text-slate-500 mt-0.5">Mon–Sat, 9:30 AM to 6:30 PM IST</span>
                 </div>
               </div>
 
-              <div className="flex items-start gap-3">
-                <div className="p-2.5 rounded-xl bg-pink-50 text-brand-pink shrink-0">
+              <div className="flex items-start gap-3.5">
+                <div className="p-2.5 rounded-xl bg-rose-50 text-rose-600 shrink-0">
                   <Mail className="w-5 h-5" />
                 </div>
                 <div>
                   <span className="text-xs font-bold text-slate-400 uppercase tracking-wider block">
                     Official Inquiries
                   </span>
-                  <a href="mailto:contact@peoplepointconsultants.com" className="text-sm font-bold text-slate-900 hover:text-brand-purple">
-                    contact@peoplepointconsultants.com
+                  <a href="mailto:peoplepointconsultant@gmail.com" className="text-sm font-bold text-slate-900 hover:text-purple-800">
+                    peoplepointconsultant@gmail.com
                   </a>
-                  <span className="block text-[11px] text-slate-500">Response guaranteed within 4 hours</span>
+                  <span className="block text-[11px] text-slate-500 mt-0.5">Direct response within 4 hours</span>
                 </div>
               </div>
 
-              <div className="flex items-start gap-3">
+              <div className="flex items-start gap-3.5">
                 <div className="p-2.5 rounded-xl bg-slate-100 text-slate-700 shrink-0">
                   <MapPin className="w-5 h-5" />
                 </div>
@@ -123,10 +123,10 @@ export default function ContactPage() {
 
               <div className="pt-2 border-t border-slate-100">
                 <a
-                  href="https://wa.me/919840000000?text=Hi%20People%20Point%2C%20I%20would%20like%20to%20discuss%20my%20business%20requirements."
+                  href="https://wa.me/918807304713?text=Hi%20People%20Point%2C%20I%20would%20like%20to%20discuss%20my%20business%20requirements."
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all"
+                  className="w-full py-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all"
                 >
                   <MessageCircle className="w-4 h-4 fill-white text-emerald-600" />
                   <span>Chat on WhatsApp Directly</span>
@@ -155,7 +155,7 @@ export default function ContactPage() {
                 </p>
                 <button
                   onClick={() => setSubmitted(false)}
-                  className="text-xs font-bold text-brand-purple hover:underline"
+                  className="text-xs font-bold text-purple-800 hover:underline"
                 >
                   Send another inquiry
                 </button>
@@ -165,7 +165,7 @@ export default function ContactPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1">
-                      Your Name <span className="text-brand-pink">*</span>
+                      Your Name <span className="text-rose-600">*</span>
                     </label>
                     <input
                       type="text"
@@ -173,7 +173,7 @@ export default function ContactPage() {
                       placeholder="e.g. Karthik Venkat"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-brand-purple outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-purple-700 outline-none"
                     />
                   </div>
                   <div>
@@ -185,7 +185,7 @@ export default function ContactPage() {
                       placeholder="Company name"
                       value={formData.company}
                       onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-brand-purple outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-purple-700 outline-none"
                     />
                   </div>
                 </div>
@@ -193,20 +193,20 @@ export default function ContactPage() {
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1">
-                      Mobile / WhatsApp <span className="text-brand-pink">*</span>
+                      Mobile / WhatsApp <span className="text-rose-600">*</span>
                     </label>
                     <input
                       type="tel"
                       required
-                      placeholder="+91 98400 00000"
+                      placeholder="+91 88073 04713"
                       value={formData.phone}
                       onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-brand-purple outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-purple-700 outline-none"
                     />
                   </div>
                   <div>
                     <label className="block text-xs font-bold text-slate-700 mb-1">
-                      Work Email <span className="text-brand-pink">*</span>
+                      Work Email <span className="text-rose-600">*</span>
                     </label>
                     <input
                       type="email"
@@ -214,7 +214,7 @@ export default function ContactPage() {
                       placeholder="karthik@company.com"
                       value={formData.email}
                       onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-brand-purple outline-none"
+                      className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-purple-700 outline-none"
                     />
                   </div>
                 </div>
@@ -226,7 +226,7 @@ export default function ContactPage() {
                   <select
                     value={formData.service}
                     onChange={(e) => setFormData({ ...formData, service: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs bg-white focus:ring-2 focus:ring-brand-purple outline-none"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs bg-white focus:ring-2 focus:ring-purple-700 outline-none"
                   >
                     <option value="General Business Consultation">General Business Consultation</option>
                     <option value="Business Launch 360° Package">Business Launch 360° Package</option>
@@ -249,14 +249,14 @@ export default function ContactPage() {
                     placeholder="Provide a brief overview of your business situation or requirements..."
                     value={formData.message}
                     onChange={(e) => setFormData({ ...formData, message: e.target.value })}
-                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-brand-purple outline-none"
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs focus:ring-2 focus:ring-purple-700 outline-none"
                   />
                 </div>
 
                 <div className="pt-2">
                   <button
                     type="submit"
-                    className="w-full py-3 rounded-xl bg-gradient-to-r from-brand-purple to-brand-pink hover:opacity-95 text-white font-bold text-xs sm:text-sm shadow-md transition-all"
+                    className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-800 to-rose-600 hover:opacity-95 text-white font-bold text-xs sm:text-sm shadow-md transition-all"
                   >
                     Send Inquiry to Partner SPOC
                   </button>

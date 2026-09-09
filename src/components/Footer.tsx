@@ -6,52 +6,53 @@ import { solutions } from '@/data/solutions';
 
 export default function Footer() {
   return (
-    <footer className="bg-brand-navy text-slate-300 pt-16 pb-12 border-t border-slate-800">
+    <footer className="bg-slate-950 text-slate-300 pt-16 pb-12 border-t border-slate-800">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Main Footer Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-slate-800/80">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-10 pb-12 border-b border-slate-800">
           {/* Brand Col (2 spans on lg) */}
           <div className="lg:col-span-2 space-y-4">
             <Link href="/" className="inline-block">
-              <div className="relative h-12 w-52 bg-white/95 px-3 py-1.5 rounded-lg">
+              <div className="bg-white px-3.5 py-1.5 rounded-xl inline-block shadow-sm">
                 <Image
                   src="/logo.png"
                   alt="People Point Consultants"
-                  fill
-                  className="object-contain p-1"
+                  width={220}
+                  height={52}
+                  className="h-9 w-auto object-contain"
                 />
               </div>
             </Link>
-            <p className="text-slate-300 text-sm font-medium tracking-wide">
+            <p className="text-white text-sm font-bold tracking-wide">
               TURN IDEAS INTO RUNNING BUSINESSES.
             </p>
             <p className="text-slate-400 text-xs sm:text-sm leading-relaxed max-w-md">
               From company setup and hiring to payroll, compliance, technology, operations, and growth — People Point provides businesses with one integrated, accountable partner to build and operate the systems behind their success.
             </p>
 
-            <div className="pt-2 flex flex-wrap gap-2 text-[11px] font-medium text-slate-400">
-              <span className="px-2.5 py-1 rounded bg-slate-800/70 border border-slate-700/50">
+            <div className="pt-2 flex flex-wrap gap-2 text-[11px] font-semibold text-slate-400">
+              <span className="px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-300">
                 • Business Setup
               </span>
-              <span className="px-2.5 py-1 rounded bg-slate-800/70 border border-slate-700/50">
+              <span className="px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-300">
                 • People & HR
               </span>
-              <span className="px-2.5 py-1 rounded bg-slate-800/70 border border-slate-700/50">
+              <span className="px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-300">
                 • Payroll & Compliance
               </span>
-              <span className="px-2.5 py-1 rounded bg-slate-800/70 border border-slate-700/50">
+              <span className="px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-300">
                 • Technology
               </span>
-              <span className="px-2.5 py-1 rounded bg-slate-800/70 border border-slate-700/50">
+              <span className="px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-300">
                 • Operations SOPs
               </span>
-              <span className="px-2.5 py-1 rounded bg-slate-800/70 border border-slate-700/50">
+              <span className="px-2.5 py-1 rounded-md bg-slate-900 border border-slate-800 text-slate-300">
                 • Growth Marketing
               </span>
             </div>
 
-            <div className="pt-4 flex items-center gap-3 text-xs text-slate-400">
-              <Shield className="w-4 h-4 text-brand-pink" />
+            <div className="pt-3 flex items-center gap-2 text-xs text-slate-400">
+              <Shield className="w-4 h-4 text-rose-500 shrink-0" />
               <span>Strict Non-Disclosure & Enterprise Data Confidentiality Guaranteed</span>
             </div>
           </div>
@@ -68,7 +69,7 @@ export default function Footer() {
                     href={`/solutions/${item.slug}`}
                     className="text-slate-400 hover:text-white transition-colors flex items-center gap-1.5"
                   >
-                    <span className="text-brand-pink text-[10px]">›</span>
+                    <span className="text-rose-500 text-[10px]">›</span>
                     <span>{item.title}</span>
                   </Link>
                 </li>
@@ -114,7 +115,7 @@ export default function Footer() {
               </li>
               <li>
                 <Link href="/industries" className="text-slate-400 hover:text-white transition-colors">
-                  Industries We Support
+                  Industries Supported
                 </Link>
               </li>
             </ul>
@@ -123,14 +124,14 @@ export default function Footer() {
           {/* Contact & SPOC Col */}
           <div>
             <h4 className="text-white text-xs font-bold uppercase tracking-wider mb-4 border-b border-slate-800 pb-2">
-              Get in Touch
+              Contact Office
             </h4>
-            <div className="space-y-3 text-xs text-slate-400">
-              <div className="p-3 rounded-xl bg-slate-800/60 border border-slate-700/50">
-                <span className="block text-[11px] text-pink-400 font-semibold uppercase">
+            <div className="space-y-3.5 text-xs text-slate-400">
+              <div className="p-3 rounded-xl bg-slate-900 border border-slate-800">
+                <span className="block text-[11px] text-rose-400 font-bold uppercase">
                   Accountable SPOC
                 </span>
-                <span className="block text-white font-medium mt-0.5">
+                <span className="block text-white font-bold mt-0.5">
                   Kesavan — Working Partner
                 </span>
                 <span className="block text-slate-400 text-[11px] mt-0.5">
@@ -139,21 +140,21 @@ export default function Footer() {
               </div>
 
               <div className="flex items-start gap-2.5">
-                <Phone className="w-4 h-4 text-brand-purple mt-0.5 shrink-0" />
+                <Phone className="w-4 h-4 text-purple-400 mt-0.5 shrink-0" />
                 <div>
                   <span className="block text-[11px] text-slate-500">Call / WhatsApp</span>
-                  <a href="tel:+919840000000" className="text-white hover:underline">
-                    +91 98400 00000
+                  <a href="tel:+918807304713" className="text-white font-bold hover:underline">
+                    +91 88073 04713
                   </a>
                 </div>
               </div>
 
               <div className="flex items-start gap-2.5">
-                <Mail className="w-4 h-4 text-brand-pink mt-0.5 shrink-0" />
+                <Mail className="w-4 h-4 text-rose-400 mt-0.5 shrink-0" />
                 <div>
                   <span className="block text-[11px] text-slate-500">Official Inquiries</span>
-                  <a href="mailto:contact@peoplepointconsultants.com" className="text-white hover:underline">
-                    contact@peoplepointconsultants.com
+                  <a href="mailto:peoplepointconsultant@gmail.com" className="text-white font-medium hover:underline">
+                    peoplepointconsultant@gmail.com
                   </a>
                 </div>
               </div>
@@ -161,8 +162,8 @@ export default function Footer() {
               <div className="flex items-start gap-2.5">
                 <MapPin className="w-4 h-4 text-slate-400 mt-0.5 shrink-0" />
                 <div>
-                  <span className="block text-[11px] text-slate-500">Headquarters</span>
-                  <span>Chennai, Tamil Nadu, India</span>
+                  <span className="block text-[11px] text-slate-500">Corporate Office</span>
+                  <span className="text-slate-200">Chennai, Tamil Nadu, India</span>
                 </div>
               </div>
             </div>
@@ -176,20 +177,20 @@ export default function Footer() {
           </div>
 
           <div className="flex flex-wrap items-center gap-4">
-            <Link href="/privacy" className="hover:text-slate-400 transition-colors">
+            <Link href="/privacy" className="hover:text-slate-300 transition-colors">
               Privacy Policy
             </Link>
             <span>•</span>
-            <Link href="/terms" className="hover:text-slate-400 transition-colors">
+            <Link href="/terms" className="hover:text-slate-300 transition-colors">
               Terms & Conditions
             </Link>
             <span>•</span>
-            <Link href="/data-security" className="hover:text-slate-400 transition-colors">
+            <Link href="/data-security" className="hover:text-slate-300 transition-colors">
               Data Security & Confidentiality
             </Link>
             <span>•</span>
-            <Link href="/admin/leads" className="text-slate-600 hover:text-slate-400">
-              Admin / CRM
+            <Link href="/admin/leads" className="text-slate-500 hover:text-slate-300">
+              Admin CRM
             </Link>
           </div>
         </div>
