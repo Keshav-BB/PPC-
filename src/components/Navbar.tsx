@@ -335,6 +335,9 @@ export default function Navbar({ onOpenConsultation }: NavbarProps) {
               <Link href="/contact" className="block py-1 text-sm font-semibold text-slate-800">
                 Contact Office
               </Link>
+              <Link href="/careers" className="block py-1 text-sm font-semibold text-rose-600">
+                Careers (We&apos;re Hiring)
+              </Link>
             </div>
 
             <div className="pt-3 border-t border-slate-200">

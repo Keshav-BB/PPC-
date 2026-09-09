@@ -118,6 +118,12 @@ export default function Footer() {
                   Industries Supported
                 </Link>
               </li>
+              <li>
+                <Link href="/careers" className="text-rose-400 hover:text-white transition-colors flex items-center gap-1">
+                  <span>Careers at People Point</span>
+                  <span className="text-[10px] px-1.5 py-0.2 rounded bg-rose-500/20 text-rose-300 font-bold">Hiring</span>
+                </Link>
+              </li>
             </ul>
           </div>
 
@@ -176,7 +182,7 @@ export default function Footer() {
             © {new Date().getFullYear()} People Point Consultants. All rights reserved. Turn Ideas Into Running Businesses.
           </div>
 
-          <div className="flex flex-wrap items-center gap-4">
+          <div className="flex flex-wrap items-center gap-3">
             <Link href="/privacy" className="hover:text-slate-300 transition-colors">
               Privacy Policy
             </Link>
@@ -185,8 +191,20 @@ export default function Footer() {
               Terms & Conditions
             </Link>
             <span>•</span>
+            <Link href="/cookie-policy" className="hover:text-slate-300 transition-colors">
+              Cookie Policy
+            </Link>
+            <span>•</span>
+            <Link href="/disclaimer" className="hover:text-slate-300 transition-colors">
+              Service Disclaimer
+            </Link>
+            <span>•</span>
+            <Link href="/refund-policy" className="hover:text-slate-300 transition-colors">
+              Refund Policy
+            </Link>
+            <span>•</span>
             <Link href="/data-security" className="hover:text-slate-300 transition-colors">
-              Data Security & Confidentiality
+              Data Security
             </Link>
           </div>
         </div>
