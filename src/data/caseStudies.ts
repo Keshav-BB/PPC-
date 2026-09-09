@@ -30,7 +30,7 @@ export const caseStudies: CaseStudy[] = [
     ],
     results: [
       'Successfully closed pre-seed funding on schedule with 100% clean legal diligence',
-      'Zero payroll calculation errors across 12 consecutive months of rapid hiring',
+      'Consistent on-time payroll processing across 12 consecutive months of rapid hiring',
       'Founder saved approximately 20 hours per week previously spent on operational admin'
     ],
     quote: {

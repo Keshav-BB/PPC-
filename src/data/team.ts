@@ -13,7 +13,7 @@ export const coreTeam: TeamMember[] = [
     name: 'Bhavani',
     role: 'Founder',
     headline: 'Entrepreneurial Vision & Institutional Foundation',
-    summary: 'Founder of Chennai Filings & People Point, providing the strategic vision, governance, and foundational leadership behind the entire organization.',
+    summary: 'Founder of Chennai Filings & People Point. Provides the foundational vision and entrepreneurial direction behind People Point, while day-to-day client servicing, operations and execution are managed by the working partners and execution team.',
     expertise: ['Business Strategy', 'Entrepreneurship', 'Corporate Structuring', 'Governance'],
     initials: 'BH',
     avatarBg: 'bg-brand-purple'

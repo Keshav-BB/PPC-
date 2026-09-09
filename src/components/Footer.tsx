@@ -53,7 +53,7 @@ export default function Footer() {
 
             <div className="pt-3 flex items-center gap-2 text-xs text-slate-400">
               <Shield className="w-4 h-4 text-rose-500 shrink-0" />
-              <span>Strict Non-Disclosure & Enterprise Data Confidentiality Guaranteed</span>
+              <span>Strict Non-Disclosure & Strong Confidentiality Controls</span>
             </div>
           </div>
 
@@ -187,10 +187,6 @@ export default function Footer() {
             <span>•</span>
             <Link href="/data-security" className="hover:text-slate-300 transition-colors">
               Data Security & Confidentiality
-            </Link>
-            <span>•</span>
-            <Link href="/admin/leads" className="text-slate-500 hover:text-slate-300">
-              Admin CRM
             </Link>
           </div>
         </div>

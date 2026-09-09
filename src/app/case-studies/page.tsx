@@ -16,13 +16,13 @@ export default function CaseStudiesPage() {
         <div className="text-center max-w-3xl mx-auto mb-16">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-100 text-brand-purple text-xs font-bold uppercase tracking-wider mb-3">
             <Sparkles className="w-3.5 h-3.5 text-brand-pink" />
-            <span>Verifiable Client Outcomes</span>
+            <span>Representative Client Scenarios</span>
           </div>
           <h1 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
-            Client Case Studies
+            Case Studies & Business Scenarios
           </h1>
           <p className="mt-4 text-base text-slate-600 leading-relaxed">
-            Detailed breakdowns of how People Point solved corporate setup, operational bottlenecks, payroll compliance, and technology challenges for growing companies.
+            Detailed breakdowns of how People Point solves corporate setup, operational bottlenecks, payroll compliance, and technology challenges for growing companies. These examples illustrate the types of business challenges we support. Results vary depending on business conditions and implementation scope.
           </p>
         </div>
 
@@ -37,9 +37,15 @@ export default function CaseStudiesPage() {
               {/* Top Meta */}
               <div className="flex flex-wrap items-center justify-between gap-3 pb-6 border-b border-slate-100">
                 <div>
-                  <span className="text-xs font-bold uppercase tracking-wider text-brand-pink">
-                    {cs.industry}
-                  </span>
+                  <div className="flex items-center gap-2 mb-1">
+                    <span className="text-xs font-bold uppercase tracking-wider text-brand-pink">
+                      {cs.industry}
+                    </span>
+                    <span className="text-slate-300">•</span>
+                    <span className="px-2 py-0.5 rounded bg-slate-100 text-slate-600 text-[11px] font-semibold">
+                      Illustrative Business Scenario
+                    </span>
+                  </div>
                   <h2 className="text-xl sm:text-2xl font-black text-slate-900 mt-1">
                     {cs.clientTitle}
                   </h2>
@@ -112,6 +118,10 @@ export default function CaseStudiesPage() {
                   </div>
                 </div>
               )}
+
+              <div className="text-[11px] text-slate-400 italic pt-2 border-t border-slate-100">
+                * This example illustrates the type of business challenge People Point can support. Results vary depending on business conditions and implementation scope.
+              </div>
             </div>
           ))}
         </div>

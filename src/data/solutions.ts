@@ -183,7 +183,7 @@ export const solutions: SolutionItem[] = [
       'Annual Form 16 preparation and Year-End Tax Statements'
     ],
     targetAudience: [
-      'Companies with 5 to 500+ employees seeking 100% statutory compliance',
+      'Companies with 5 to 500+ employees seeking comprehensive statutory compliance',
       'Founders currently wasting days each month calculating salaries manually',
       'Overseas entities needing disciplined India-based payroll and backend execution'
     ],
@@ -194,7 +194,7 @@ export const solutions: SolutionItem[] = [
       industry: 'Software & Technology',
       challenge: 'Managing salaries via Excel sheets led to recurring errors in PF calculations, unpaid PT, and employee discontent.',
       solution: 'People Point deployed a cloud HRMS, restructured CTCs for tax efficiency, and took over end-to-end monthly processing.',
-      result: '100% on-time salary credit on the 1st of every month with zero compliance non-conformance notices across two fiscal years.'
+      result: 'Consistent on-time salary credit on the 1st of every month with proactive compliance filings across two fiscal years.'
     },
     faqs: [
       {

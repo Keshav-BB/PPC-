@@ -86,7 +86,7 @@ const journeys: JourneyItem[] = [
     response: 'Payroll, Compliance & Cloud HRMS',
     solutionLink: '/solutions/payroll-compliance',
     highlightPoints: [
-      '100% error-free monthly salary processing',
+      'Structured & review-controlled monthly salary processing',
       'Timely PF, ESI, Professional Tax & TDS compliance',
       'Self-service employee portal for digital payslips',
       'India & US cross-border payroll coordination'
@@ -144,9 +144,10 @@ const journeys: JourneyItem[] = [
 
 interface BusinessJourneySelectorProps {
   onOpenConsultation?: () => void;
+  onOpenChat?: (stage: string) => void;
 }
 
-export default function BusinessJourneySelector({ onOpenConsultation }: BusinessJourneySelectorProps) {
+export default function BusinessJourneySelector({ onOpenConsultation, onOpenChat }: BusinessJourneySelectorProps) {
   const [activeJourney, setActiveJourney] = useState(journeys[0]);
 
   return (
@@ -261,6 +262,14 @@ export default function BusinessJourneySelector({ onOpenConsultation }: Business
                 >
                   <span>Book Free 30-Min Consultation</span>
                   <ArrowRight className="w-4 h-4" />
+                </button>
+
+                <button
+                  onClick={() => onOpenChat?.(activeJourney.stage)}
+                  className="w-full py-2.5 px-4 rounded-xl bg-purple-900/60 hover:bg-purple-900 border border-purple-400/30 text-purple-200 hover:text-white font-semibold text-xs transition-all flex items-center justify-center gap-1.5"
+                >
+                  <Sparkles className="w-3.5 h-3.5 text-rose-300" />
+                  <span>✨ Ask AI Advisor About This Stage</span>
                 </button>
 
                 <Link

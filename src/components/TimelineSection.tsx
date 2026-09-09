@@ -48,7 +48,7 @@ const stages = [
     duration: 'Ongoing',
     icon: <TrendingUp className="w-5 h-5 text-brand-pink" />,
     description: 'Your business is now fully operational. People Point continues managing monthly payroll, statutory filings, and customer growth.',
-    outputs: ['Automated Monthly Payroll', 'Zero-Penalty Compliance', 'Scalable Performance Ads']
+    outputs: ['Automated Monthly Payroll', 'Proactive Compliance Management', 'Scalable Performance Ads']
   }
 ];
 

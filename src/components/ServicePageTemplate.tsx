@@ -90,7 +90,7 @@ export default function ServicePageTemplate({ solution }: ServicePageTemplatePro
                 <Clock className="w-4 h-4 text-brand-purple" /> Timeline: {solution.timeline}
               </span>
               <span className="flex items-center gap-1.5">
-                <ShieldCheck className="w-4 h-4 text-brand-pink" /> 100% Dedicated SPOC Assigned
+                <ShieldCheck className="w-4 h-4 text-brand-pink" /> Dedicated Account SPOC Assigned
               </span>
             </div>
           </div>

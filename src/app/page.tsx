@@ -28,7 +28,7 @@ import {
   Compass,
   Star
 } from 'lucide-react';
-import { ConsultationContext } from '@/components/ClientLayoutWrapper';
+import { ConsultationContext, ChatBotContext } from '@/components/ClientLayoutWrapper';
 import BusinessJourneySelector from '@/components/BusinessJourneySelector';
 import SolutionsGrid from '@/components/SolutionsGrid';
 import TimelineSection from '@/components/TimelineSection';
@@ -42,6 +42,7 @@ import { leadMagnets, LeadMagnet } from '@/data/leadMagnets';
 
 export default function HomePage() {
   const { openConsultation } = useContext(ConsultationContext);
+  const { openChat } = useContext(ChatBotContext);
   const [activeFaq, setActiveFaq] = useState<number | null>(0);
   const [selectedMagnet, setSelectedMagnet] = useState<LeadMagnet | null>(null);
 
@@ -90,6 +91,30 @@ export default function HomePage() {
               >
                 <span>Explore Our Solutions</span>
               </a>
+            </div>
+
+            {/* Hero AI Advisor Callout */}
+            <div className="mt-8 max-w-2xl mx-auto p-4 sm:p-4.5 rounded-2xl bg-white/95 border border-purple-200 shadow-md flex flex-col sm:flex-row items-center justify-between gap-3.5 text-left">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-purple-100 border border-purple-200 flex items-center justify-center shrink-0">
+                  <Sparkles className="w-5 h-5 text-purple-700" />
+                </div>
+                <div>
+                  <div className="text-xs font-bold text-slate-900">
+                    Not Sure Which Service You Need?
+                  </div>
+                  <p className="text-xs text-slate-600 leading-snug">
+                    Tell our AI Business Advisor what you&apos;re planning, and we&apos;ll help identify the business support you may need.
+                  </p>
+                </div>
+              </div>
+              <button
+                onClick={() => openChat()}
+                className="w-full sm:w-auto px-4 py-2.5 rounded-xl bg-gradient-to-r from-purple-900 to-rose-700 hover:opacity-95 text-white text-xs font-bold whitespace-nowrap shadow-xs transition-opacity flex items-center justify-center gap-1.5 shrink-0"
+              >
+                <Sparkles className="w-3.5 h-3.5 text-rose-300" />
+                <span>✨ Ask People Point AI</span>
+              </button>
             </div>
 
             {/* Trust Highlights Strip */}
@@ -151,7 +176,10 @@ export default function HomePage() {
       </section>
 
       {/* 04: BUSINESS JOURNEY SELECTOR */}
-      <BusinessJourneySelector onOpenConsultation={() => openConsultation()} />
+      <BusinessJourneySelector
+        onOpenConsultation={() => openConsultation()}
+        onOpenChat={(stage) => openChat({ stage, message: `I am currently in the ${stage} stage. What support do you recommend?` })}
+      />
 
       {/* 05: SEVEN CORE SOLUTIONS */}
       <SolutionsGrid onOpenConsultation={(s) => openConsultation(s)} />
@@ -786,7 +814,7 @@ export default function HomePage() {
               <CheckCircle2 className="w-4 h-4 text-emerald-400" /> Accountable SPOC Assigned
             </span>
             <span className="flex items-center gap-1.5">
-              <Clock className="w-4 h-4 text-purple-400" /> Response within 4 Hours
+              <Clock className="w-4 h-4 text-purple-400" /> Target Response: Within 4 Business Hours
             </span>
           </div>
         </div>

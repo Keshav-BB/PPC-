@@ -93,12 +93,6 @@ export default function Navbar({ onOpenConsultation }: NavbarProps) {
               <Mail className="w-3.5 h-3.5 text-purple-400 shrink-0" />
               <span>peoplepointconsultant@gmail.com</span>
             </a>
-            <Link
-              href="/admin/leads"
-              className="hidden lg:inline-flex text-[11px] px-2.5 py-0.5 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium transition-colors whitespace-nowrap shrink-0"
-            >
-              CRM Portal
-            </Link>
           </div>
         </div>
       </div>
@@ -340,9 +334,6 @@ export default function Navbar({ onOpenConsultation }: NavbarProps) {
               </Link>
               <Link href="/contact" className="block py-1 text-sm font-semibold text-slate-800">
                 Contact Office
-              </Link>
-              <Link href="/admin/leads" className="block py-1 text-xs text-slate-500 font-mono">
-                CRM Lead Dashboard
               </Link>
             </div>
 

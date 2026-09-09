@@ -82,7 +82,7 @@ export default function DataSecurityPage() {
             <span>Transparency & Compliance Statement</span>
           </div>
           <p className="leading-relaxed">
-            People Point Consultants enforces rigorous internal operational security standards and data handling best practices. We strictly distinguish direct services from work coordinated through authorized regulatory bodies and certified professionals. We do not claim third-party certifications (such as ISO or SOC 2) unless officially audited and active.
+            People Point Consultants enforces rigorous internal operational security standards and data handling best practices. Our security practices are designed around structured access control, confidentiality and responsible data handling. We strictly distinguish direct services from work coordinated through authorized regulatory bodies and certified professionals, and we do not claim third-party certifications (such as ISO or SOC 2) unless officially audited and active.
           </p>
         </div>
       </div>

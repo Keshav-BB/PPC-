@@ -17,7 +17,7 @@ export const leadMagnets: LeadMagnet[] = [
     description: 'A complete step-by-step checklist for incorporating, licensing, and setting up operating bank accounts and compliance in India.',
     format: 'PDF Guide & Checklist (12 Pages)',
     iconName: 'ClipboardCheck',
-    downloadCount: '1,420+ downloads',
+    downloadCount: 'Popular Business Resource',
     bullets: [
       'Entity comparison matrix (Pvt Ltd vs LLP vs OPC)',
       'Statutory registration sequence (GST, MSME, PAN/TAN, PT)',
@@ -32,7 +32,7 @@ export const leadMagnets: LeadMagnet[] = [
     description: 'Essential legally-compliant templates for hiring your foundational team without costly legal retainers.',
     format: 'Word & PDF Templates',
     iconName: 'Users',
-    downloadCount: '980+ downloads',
+    downloadCount: 'Foundational HR Toolkit',
     bullets: [
       'Standard employment agreement & NDA template',
       'Structured interview scorecard & evaluation rubrics',
@@ -47,7 +47,7 @@ export const leadMagnets: LeadMagnet[] = [
     description: 'Never miss a filing deadline. Complete schedule of monthly and annual PF, ESI, Professional Tax, and TDS dates.',
     format: 'Wallchart & Digital Calendar',
     iconName: 'Calendar',
-    downloadCount: '2,150+ downloads',
+    downloadCount: 'Statutory Compliance Calendar',
     bullets: [
       'Exact monthly cutoffs for PF & ESI return submissions',
       'Quarterly TDS Form 24Q filing timelines',
@@ -62,7 +62,7 @@ export const leadMagnets: LeadMagnet[] = [
     description: 'The exact framework People Point uses to map business workflows and eliminate founder bottlenecks.',
     format: 'Interactive SOP Document Template',
     iconName: 'Workflow',
-    downloadCount: '860+ downloads',
+    downloadCount: 'Standard Operations Blueprint',
     bullets: [
       'Standard 5-section SOP formatting template',
       'Delegation of authority (DoA) matrix framework',
@@ -77,7 +77,7 @@ export const leadMagnets: LeadMagnet[] = [
     description: 'Quantifiable key result areas and performance indicators across Sales, Operations, Tech, and Customer Success.',
     format: 'Spreadsheet Matrix & Guide',
     iconName: 'Target',
-    downloadCount: '1,200+ downloads',
+    downloadCount: 'Performance Framework',
     bullets: [
       'Ready-to-use KPI rubrics for 15 core corporate roles',
       'Quarterly performance scoring formulas',

@@ -26,7 +26,7 @@ export const packages: PackageItem[] = [
       'Core Process Blueprint & Master Operating Checklist',
       'Initial Lead Generation & Growth Roadmap'
     ],
-    timeline: '3 to 4 Weeks',
+    timeline: '3 to 4 Weeks (indicative; statutory registration depends on MCA & government department approvals)',
     engagementType: 'Turnkey Project with 60-day Post-Launch Support',
     deliverables: [
       'Incorporation Certificate & Registered Compliance Kit',
@@ -81,7 +81,7 @@ export const packages: PackageItem[] = [
     id: 'payroll-compliance',
     name: 'Payroll & Compliance',
     tagline: 'Precision Payroll with Ironclad Statutory Adherence.',
-    bestFor: 'Employers of any size looking for zero payroll errors and timely PF/ESI/PT/TDS compliance.',
+    bestFor: 'Employers of any size looking for structured payroll processing and proactive PF/ESI/PT/TDS compliance.',
     indicativeScope: [
       'Monthly Payroll Run & Salary Computations',
       'PF, ESI & Professional Tax Challan Generation & Filings',
