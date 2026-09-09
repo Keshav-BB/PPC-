@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { X, CheckCircle2, Calendar, Clock, ArrowRight, ShieldCheck, Sparkles } from 'lucide-react';
 import { saveNewLead } from '@/lib/leadStorage';
 import { solutions } from '@/data/solutions';
@@ -389,6 +390,19 @@ export default function ConsultationModal({ isOpen, onClose, defaultService }: C
                   <div className="flex items-center gap-2 text-xs text-slate-600 bg-slate-50 p-3 rounded-xl border border-slate-200">
                     <ShieldCheck className="w-4 h-4 text-emerald-600 shrink-0" />
                     <span>Your details are strictly confidential under enterprise non-disclosure.</span>
+                  </div>
+
+                  <div className="flex items-start gap-2.5 pt-1">
+                    <input
+                      type="checkbox"
+                      id="consent-modal"
+                      required
+                      defaultChecked
+                      className="mt-0.5 h-4 w-4 rounded border-slate-300 text-purple-700 focus:ring-purple-600 cursor-pointer"
+                    />
+                    <label htmlFor="consent-modal" className="text-[11px] text-slate-500 leading-snug cursor-pointer select-none">
+                      I agree to the <Link href="/terms" target="_blank" className="underline hover:text-purple-700 font-semibold">Terms of Service</Link> and <Link href="/privacy" target="_blank" className="underline hover:text-purple-700 font-semibold">Privacy Policy</Link>, and consent to being contacted by People Point via Phone, WhatsApp, or Email for advisory purposes.
+                    </label>
                   </div>
 
                   <div className="pt-2 flex justify-between">

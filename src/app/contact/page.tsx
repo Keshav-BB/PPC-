@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { Phone, Mail, MapPin, MessageCircle, Clock, ShieldCheck, CheckCircle2, UserCheck } from 'lucide-react';
 import { saveNewLead } from '@/lib/leadStorage';
 
@@ -253,14 +254,27 @@ export default function ContactPage() {
                   />
                 </div>
 
-                <div className="pt-2">
-                  <button
-                    type="submit"
-                    className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-800 to-rose-600 hover:opacity-95 text-white font-bold text-xs sm:text-sm shadow-md transition-all"
-                  >
-                    Send Inquiry to Partner SPOC
-                  </button>
-                </div>
+                  <div className="flex items-start gap-2.5 pt-1">
+                    <input
+                      type="checkbox"
+                      id="consent-contact"
+                      required
+                      defaultChecked
+                      className="mt-0.5 h-4 w-4 rounded border-slate-300 text-purple-700 focus:ring-purple-600 cursor-pointer"
+                    />
+                    <label htmlFor="consent-contact" className="text-[11px] text-slate-500 leading-snug cursor-pointer select-none">
+                      I agree to the <Link href="/terms" target="_blank" className="underline hover:text-purple-700 font-semibold">Terms of Service</Link> and <Link href="/privacy" target="_blank" className="underline hover:text-purple-700 font-semibold">Privacy Policy</Link>, and consent to being contacted by People Point via Phone, WhatsApp, or Email for advisory purposes.
+                    </label>
+                  </div>
+
+                  <div className="pt-2">
+                    <button
+                      type="submit"
+                      className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-800 to-rose-600 hover:opacity-95 text-white font-bold text-xs sm:text-sm shadow-md transition-all"
+                    >
+                      Send Inquiry to Partner SPOC
+                    </button>
+                  </div>
               </form>
             )}
           </div>

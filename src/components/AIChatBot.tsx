@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
+import Link from 'next/link';
 import {
   Sparkles,
   X,
@@ -439,6 +440,18 @@ export default function AIChatBot({
                     onChange={(e) => setLeadForm({ ...leadForm, city: e.target.value })}
                     className="text-xs px-3 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-purple-700"
                   />
+                </div>
+                <div className="flex items-start gap-2 pt-0.5 pb-1">
+                  <input
+                    type="checkbox"
+                    id="consent-bot"
+                    required
+                    defaultChecked
+                    className="mt-0.5 h-3.5 w-3.5 rounded border-slate-300 text-purple-700 focus:ring-purple-600 cursor-pointer"
+                  />
+                  <label htmlFor="consent-bot" className="text-[10px] text-slate-500 leading-snug cursor-pointer select-none">
+                    I agree to the <Link href="/terms" target="_blank" className="underline hover:text-purple-700 font-medium">Terms</Link> & <Link href="/privacy" target="_blank" className="underline hover:text-purple-700 font-medium">Privacy Policy</Link>, and consent to communication via Phone/WhatsApp.
+                  </label>
                 </div>
                 <button
                   type="submit"

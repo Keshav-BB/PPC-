@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import {
   getStoredLeads,
   updateLeadStatus,
@@ -20,7 +21,8 @@ import {
   Building,
   RefreshCw,
   Clock,
-  Sparkles
+  Sparkles,
+  FileText
 } from 'lucide-react';
 
 const statusOptions: LeadRecord['status'][] = [
@@ -104,6 +106,13 @@ export default function LeadsDashboardPage() {
           </div>
 
           <div className="flex items-center gap-3">
+            <Link
+              href="/admin/billing"
+              className="px-4 py-2 rounded-xl bg-purple-900 hover:bg-purple-950 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all"
+            >
+              <FileText className="w-3.5 h-3.5" />
+              <span>Quotations & Invoices</span>
+            </Link>
             <button
               onClick={loadLeads}
               className="px-3.5 py-2 rounded-xl bg-white border border-slate-200 hover:bg-slate-50 text-xs font-bold text-slate-700 flex items-center gap-1.5 shadow-xs"
@@ -335,6 +344,13 @@ export default function LeadsDashboardPage() {
                 </div>
 
                 <div className="pt-3 border-t border-slate-100 flex flex-col gap-2">
+                  <Link
+                    href={`/admin/billing`}
+                    className="w-full py-2.5 rounded-xl bg-purple-900 hover:bg-purple-950 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all"
+                  >
+                    <FileText className="w-3.5 h-3.5 text-brand-pink" />
+                    <span>Create Official Quote / Invoice</span>
+                  </Link>
                   <a
                     href={`https://wa.me/${selectedLead.phone.replace(/[^0-9]/g, '')}?text=Hi%20${encodeURIComponent(selectedLead.fullName)}%2C%20this%20is%20the%20team%20at%20People%20Point%20Consultants.%20I%20reviewed%20your%20inquiry%20regarding%20${encodeURIComponent(selectedLead.servicesNeeded[0] || 'business setup')}.`}
                     target="_blank"

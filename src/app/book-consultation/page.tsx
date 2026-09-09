@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState } from 'react';
+import Link from 'next/link';
 import { Calendar, Clock, CheckCircle2, ShieldCheck, Sparkles, UserCheck, ArrowRight } from 'lucide-react';
 import { saveNewLead } from '@/lib/leadStorage';
 import { solutions } from '@/data/solutions';
@@ -245,6 +246,19 @@ export default function BookConsultationPage() {
                 onChange={(e) => setFormData({ ...formData, challenge: e.target.value })}
                 className="w-full p-3 rounded-xl border border-slate-200 text-xs focus:ring-2 focus:ring-brand-purple outline-none"
               />
+            </div>
+
+            <div className="flex items-start gap-2.5 pt-1">
+              <input
+                type="checkbox"
+                id="consent-booking"
+                required
+                defaultChecked
+                className="mt-0.5 h-4 w-4 rounded border-slate-300 text-brand-purple focus:ring-brand-purple cursor-pointer"
+              />
+              <label htmlFor="consent-booking" className="text-[11px] text-slate-500 leading-snug cursor-pointer select-none">
+                I agree to the <Link href="/terms" target="_blank" className="underline hover:text-brand-purple font-semibold">Terms of Service</Link> and <Link href="/privacy" target="_blank" className="underline hover:text-brand-purple font-semibold">Privacy Policy</Link>, and consent to being contacted by People Point via Phone, WhatsApp, or Email for advisory purposes.
+              </label>
             </div>
 
             <div className="pt-4 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
