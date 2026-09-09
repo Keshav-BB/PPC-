@@ -1,8 +1,7 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
-import Image from 'next/image';
 import {
   FileText,
   Printer,
@@ -24,351 +23,777 @@ import {
   MessageCircle,
   ExternalLink,
   ShieldCheck,
-  Percent
+  Percent,
+  Clock,
+  RefreshCw,
+  ChevronRight,
+  Edit3,
+  Eye,
+  Send,
+  AlertTriangle,
+  Filter,
+  Search,
+  Check,
+  X,
+  ShieldAlert,
+  Award,
+  FileSpreadsheet,
+  ArrowRight,
+  BarChart3,
+  TrendingUp,
+  DollarSign,
+  Users,
+  Briefcase,
+  Settings as SettingsIcon,
+  BookOpen,
+  Receipt
 } from 'lucide-react';
+import {
+  ClientRecord,
+  LineItem,
+  ScopeSection,
+  QuotationRecord,
+  InvoiceRecord,
+  PaymentRecord,
+  RateCardItem,
+  OrgSettings,
+  AuditLogEntry,
+  getStoredClients,
+  saveClients,
+  getStoredQuotations,
+  saveQuotations,
+  getStoredInvoices,
+  saveInvoices,
+  getStoredPayments,
+  savePayments,
+  getStoredSettings,
+  saveSettings,
+  getStoredAuditLogs,
+  logAuditEvent,
+  PAYROLL_SCOPE_TEMPLATES,
+  SEED_RATE_CARDS,
+  SEED_CLIENTS
+} from '@/lib/billingStorage';
 import { getStoredLeads, LeadRecord } from '@/lib/leadStorage';
 
-interface LineItem {
-  id: string;
-  description: string;
-  quantity: number;
-  unit: string;
-  rate: number;
-  amount: number;
-}
+type ActiveTab =
+  | 'quotations'
+  | 'invoices'
+  | 'clients'
+  | 'payments'
+  | 'receipts'
+  | 'rate_cards'
+  | 'templates'
+  | 'reports'
+  | 'settings'
+  | 'audit';
 
-interface BillingDoc {
-  type: 'invoice' | 'quotation';
-  docNumber: string;
-  date: string;
-  validityDate: string;
-  clientName: string;
-  companyName: string;
-  address: string;
-  phone: string;
-  email: string;
-  gstin: string;
-  subject: string;
-  scopeItems: string[];
-  items: LineItem[];
-  discount: number;
-  taxRate: number; // 0 for exempt/pre-registration, 18 for GST
-  taxType: 'none' | 'cgst_sgst' | 'igst';
-  advancePaid: number;
-  paymentTerms: string;
-  notes: string;
-  bankDetails: {
-    accountName: string;
-    bankName: string;
-    accountNumber: string;
-    ifsc: string;
-    accountType: string;
-  };
-  signatory: string;
-}
-
-// Authentic presets from real business artifacts
-const SHREE_ABHI_INVOICE_PRESET: BillingDoc = {
-  type: 'invoice',
-  docNumber: 'INV/2026-27/007',
-  date: '2026-09-04',
-  validityDate: '2026-09-14',
-  clientName: 'Director / Management',
-  companyName: 'SHREE ABHI ELECTRICALS & ENGINEERING PRIVATE LIMITED',
-  address: 'Chennai, Tamil Nadu, India',
-  phone: '+91 98400 00000',
-  email: 'accounts@shreeabhi.com',
-  gstin: '',
-  subject: 'Payroll Setup & Monthly Payroll Services – One-Time Setup Fee (Advance)',
-  scopeItems: [
-    'Review and verification of employee/payroll data',
-    'CTC & salary structure preparation',
-    'Salary components / paysheet / payslip format setup',
-    'Zoho Payroll setup and configuration',
-    'Employee master data setup and initial payroll reconciliation',
-    'Setup of required statutory compliance reports and MIS formats'
-  ],
-  items: [
-    {
-      id: '1',
-      description:
-        'One-Time Payroll Setup & Review – review and verification of employee/payroll data, CTC & salary structure preparation, salary components/paysheet/payslip format setup, Zoho Payroll setup/configuration, employee master data setup, initial payroll calculation, validation and reconciliation, setup of required payroll reports and formats',
-      quantity: 1,
-      unit: 'Setup',
-      rate: 25000,
-      amount: 25000
-    },
-    {
-      id: '2',
-      description: 'Monthly Payroll & Compliance Services – 15 employees × ₹100 per employee per month',
-      quantity: 15,
-      unit: 'Emp/Mo',
-      rate: 100,
-      amount: 1500
-    }
-  ],
-  discount: 2000,
-  taxRate: 0,
-  taxType: 'none',
-  advancePaid: 15000,
-  paymentTerms:
-    'The One-Time Setup Fee is ₹23,000 (net of ₹2,000 discount on standard ₹25,000 fee), payable in two tranches: ₹15,000 advance payable now, and balance ₹8,000 payable upon completion of setup. Monthly payroll of ₹1,500 is billed monthly for 15 employees.',
-  notes:
-    'GST is presently not applicable under pre-registration threshold. Statutory liabilities (PF/ESIC/PT/TDS) are paid directly by client; our fee covers advisory and operational execution.',
-  bankDetails: {
-    accountName: 'V Bhavani',
-    bankName: 'Indian Bank, Nallambakkam Branch',
-    accountNumber: '6029225486',
-    ifsc: 'IDIB000N056',
-    accountType: 'Savings'
-  },
-  signatory: 'For PeoplePoint Consultants\nAuthorised Signatory'
-};
-
-const B_SEC_QUOTATION_PRESET: BillingDoc = {
-  type: 'quotation',
-  docNumber: 'QTN/2026-27/001',
-  date: '2026-07-23',
-  validityDate: '2026-08-22',
-  clientName: 'Leadership Team',
-  companyName: 'B-Sec Technologies',
-  address: 'Chennai, Tamil Nadu, India',
-  phone: '+91 98840 00000',
-  email: 'info@bsectechnologies.com',
-  gstin: '',
-  subject: 'Proposal & Commercial Quotation for End-to-End Payroll & Statutory Compliance Services',
-  scopeItems: [
-    'A. Payroll Processing & Administration: Employee master data, monthly salary computation (fixed/variable/LOP), payslip generation & secure distribution, bank advice transfer statement, attendance/leave handling, new joinee onboarding & F&F settlements.',
-    'B. Statutory Compliance Support: Provident Fund (PF) ECR & challan generation, Employees State Insurance (ESIC) filing, Professional Tax (PT) state compliance, TDS Section 192 computation and Form 16 issuance.',
-    'C. Reporting & Advisory: Monthly MIS cost analysis, headcount reports, and SPOC compliance advisory.'
-  ],
-  items: [
-    {
-      id: '1',
-      description:
-        'Comprehensive Payroll Consultancy Services (Per Employee Per Month) – including payroll processing, PF ECR, ESIC challan, PT return, TDS Sec 192 computation and employee support.',
-      quantity: 15,
-      unit: 'Emp/Mo',
-      rate: 100,
-      amount: 1500
-    }
-  ],
-  discount: 0,
-  taxRate: 0,
-  taxType: 'none',
-  advancePaid: 0,
-  paymentTerms:
-    'Quote based on 15 employees. Additional employees billed at ₹100/emp/month. Invoices raised at the beginning of each calendar month. Payment due within 10 business days.',
-  notes:
-    'Valid for 30 days from date of issue. Statutory duties (PF/ESIC/PT) are directly client liabilities. GST currently not applicable. Upon GST registration, GST will be charged at applicable rate.',
-  bankDetails: {
-    accountName: 'V Bhavani',
-    bankName: 'Indian Bank, Nallambakkam Branch',
-    accountNumber: '6029225486',
-    ifsc: 'IDIB000N056',
-    accountType: 'Savings'
-  },
-  signatory: 'For PeoplePoint Consultants\nAuthorised Signatory'
-};
-
-const LAUNCH_360_PRESET: BillingDoc = {
-  type: 'quotation',
-  docNumber: 'QTN/2026-27/003',
-  date: new Date().toISOString().split('T')[0],
-  validityDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
-  clientName: 'Founding Team',
-  companyName: 'New Venture Private Limited',
-  address: 'Chennai / Bengaluru, India',
-  phone: '+91 88073 04713',
-  email: 'founder@newventure.com',
-  gstin: '',
-  subject: 'Business Launch 360° – Integrated Corporate Setup & People Foundation',
-  scopeItems: [
-    'Corporate Entity Structuring & MCA Incorporation (Pvt Ltd / LLP)',
-    'Core Registrations: PAN, TAN, GST, MSME/Udyam, PF, ESIC, Professional Tax',
-    'HR Setup: Offer letters, employment contracts, HR policies, leave matrix, NDAs',
-    'Cloud Payroll System Setup (Zoho Payroll / Keka) with CTC builder',
-    'Bank Account Setup Coordination and First 30 Days SPOC Handholding'
-  ],
-  items: [
-    {
-      id: '1',
-      description: 'Business Launch 360° Comprehensive Foundation Package (End-to-End Corporate Setup + HR + Compliance)',
-      quantity: 1,
-      unit: 'Package',
-      rate: 35000,
-      amount: 35000
-    },
-    {
-      id: '2',
-      description: 'First 3 Months Starter Retainer (Statutory Compliance & Review-Controlled Payroll)',
-      quantity: 3,
-      unit: 'Months',
-      rate: 2500,
-      amount: 7500
-    }
-  ],
-  discount: 2500,
-  taxRate: 0,
-  taxType: 'none',
-  advancePaid: 20000,
-  paymentTerms: '50% advance on execution of service agreement, balance milestone-based on MCA & system handover.',
-  notes: 'Government statutory challans & MCA filing portal fees billed at actuals against official receipts.',
-  bankDetails: {
-    accountName: 'V Bhavani',
-    bankName: 'Indian Bank, Nallambakkam Branch',
-    accountNumber: '6029225486',
-    ifsc: 'IDIB000N056',
-    accountType: 'Savings'
-  },
-  signatory: 'For PeoplePoint Consultants\nAuthorised Signatory'
-};
+type UserRole = 'Sales / SPOC' | 'Manager' | 'Accounts' | 'Admin' | 'Management';
 
 export default function AdminBillingPage() {
-  const [doc, setDoc] = useState<BillingDoc>(SHREE_ABHI_INVOICE_PRESET);
-  const [crmLeads, setCrmLeads] = useState<LeadRecord[]>([]);
-  const [selectedLeadId, setSelectedLeadId] = useState<string>('');
+  // Navigation & Role State
+  const [activeTab, setActiveTab] = useState<ActiveTab>('quotations');
+  const [currentRole, setCurrentRole] = useState<UserRole>('Admin');
+  const [currentUser, setCurrentUser] = useState<string>('Bhavani (Founder)');
 
+  // Master Data State
+  const [clients, setClients] = useState<ClientRecord[]>([]);
+  const [quotations, setQuotations] = useState<QuotationRecord[]>([]);
+  const [invoices, setInvoices] = useState<InvoiceRecord[]>([]);
+  const [payments, setPayments] = useState<PaymentRecord[]>([]);
+  const [settings, setSettings] = useState<OrgSettings>(getStoredSettings());
+  const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>([]);
+  const [crmLeads, setCrmLeads] = useState<LeadRecord[]>([]);
+
+  // Selected Documents for Viewing / Editing / Printing
+  const [selectedQuote, setSelectedQuote] = useState<QuotationRecord | null>(null);
+  const [selectedInvoice, setSelectedInvoice] = useState<InvoiceRecord | null>(null);
+  const [selectedReceipt, setSelectedReceipt] = useState<PaymentRecord | null>(null);
+  const [quoteEditorMode, setQuoteEditorMode] = useState<'create' | 'edit' | 'preview'>('preview');
+  const [invoiceEditorMode, setInvoiceEditorMode] = useState<'create' | 'edit' | 'preview'>('preview');
+
+  // New Client Modal
+  const [showNewClientModal, setShowNewClientModal] = useState(false);
+  const [newClientForm, setNewClientForm] = useState<Partial<ClientRecord>>({
+    legalName: '',
+    tradingName: '',
+    contactPerson: '',
+    phone: '',
+    email: '',
+    billingAddress: '',
+    state: 'Tamil Nadu',
+    placeOfSupply: 'Tamil Nadu (33)',
+    country: 'India',
+    gstin: '',
+    pan: '',
+    defaultPaymentTerms: 'Net 10 Business Days',
+    internalOwner: 'Bhavani (Founder)'
+  });
+
+  // Record Payment Modal
+  const [showPaymentModal, setShowPaymentModal] = useState(false);
+  const [paymentForm, setPaymentForm] = useState({
+    invoiceId: '',
+    amount: 0,
+    tdsDeducted: 0,
+    paymentDate: new Date().toISOString().split('T')[0],
+    paymentMode: 'NEFT / RTGS' as PaymentRecord['paymentMode'],
+    utrReference: '',
+    notes: ''
+  });
+
+  // Recurring Invoice Generator Modal
+  const [showRecurringModal, setShowRecurringModal] = useState(false);
+  const [recurringMonth, setRecurringMonth] = useState('October 2026');
+  const [recurringHeadcountMap, setRecurringHeadcountMap] = useState<Record<string, number>>({});
+
+  // Notification Toast
+  const [toastMsg, setToastMsg] = useState<string | null>(null);
+  const showToast = (msg: string) => {
+    setToastMsg(msg);
+    setTimeout(() => setToastMsg(null), 3500);
+  };
+
+  // Load initial stored records
   useEffect(() => {
+    setClients(getStoredClients());
+    setQuotations(getStoredQuotations());
+    setInvoices(getStoredInvoices());
+    setPayments(getStoredPayments());
+    setSettings(getStoredSettings());
+    setAuditLogs(getStoredAuditLogs());
     setCrmLeads(getStoredLeads());
+
+    const initialQuotes = getStoredQuotations();
+    if (initialQuotes.length > 0) {
+      setSelectedQuote(initialQuotes[0]);
+    }
+    const initialInvoices = getStoredInvoices();
+    if (initialInvoices.length > 0) {
+      setSelectedInvoice(initialInvoices[0]);
+    }
   }, []);
 
-  // Recalculate totals
-  const subtotal = doc.items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
-  const netAfterDiscount = Math.max(0, subtotal - (Number(doc.discount) || 0));
-  const taxAmount = doc.taxType === 'none' ? 0 : (netAfterDiscount * doc.taxRate) / 100;
-  const totalPayable = netAfterDiscount + taxAmount;
-  const balanceDue = Math.max(0, totalPayable - (Number(doc.advancePaid) || 0));
+  // Update headcount map when invoices load
+  useEffect(() => {
+    const map: Record<string, number> = {};
+    invoices.forEach((inv) => {
+      if (inv.isRecurring && inv.recurringHeadcount) {
+        map[inv.id] = inv.recurringHeadcount;
+      }
+    });
+    setRecurringHeadcountMap(map);
+  }, [invoices]);
 
-  const handleItemChange = (index: number, field: keyof LineItem, val: string | number) => {
-    const updated = [...doc.items];
-    const target = { ...updated[index], [field]: val };
-    if (field === 'quantity' || field === 'rate') {
-      const q = field === 'quantity' ? Number(val) : target.quantity;
-      const r = field === 'rate' ? Number(val) : target.rate;
-      target.amount = (q || 0) * (r || 0);
-    }
-    updated[index] = target;
-    setDoc({ ...doc, items: updated });
-  };
+  // -------------------------------------------------------------
+  // Calculations Helper for Active Quote Editor
+  // -------------------------------------------------------------
+  const quoteSubtotal = useMemo(() => {
+    if (!selectedQuote) return 0;
+    return selectedQuote.items.reduce((sum, item) => sum + (Number(item.amount) || 0), 0);
+  }, [selectedQuote]);
 
-  const addItem = () => {
-    const newItem: LineItem = {
-      id: String(Date.now()),
-      description: 'New Professional Service / Advisory Scope',
-      quantity: 1,
-      unit: 'Service',
-      rate: 5000,
-      amount: 5000
-    };
-    setDoc({ ...doc, items: [...doc.items, newItem] });
-  };
+  const quoteNetAfterDiscount = useMemo(() => {
+    if (!selectedQuote) return 0;
+    return Math.max(0, quoteSubtotal - (Number(selectedQuote.discount) || 0));
+  }, [selectedQuote, quoteSubtotal]);
 
-  const removeItem = (index: number) => {
-    if (doc.items.length <= 1) return;
-    const updated = doc.items.filter((_, i) => i !== index);
-    setDoc({ ...doc, items: updated });
-  };
+  const quoteTaxAmount = useMemo(() => {
+    if (!selectedQuote || selectedQuote.taxType === 'none') return 0;
+    return (quoteNetAfterDiscount * (selectedQuote.taxRate || 0)) / 100;
+  }, [selectedQuote, quoteNetAfterDiscount]);
 
-  const handleLeadImport = (leadId: string) => {
-    setSelectedLeadId(leadId);
-    const lead = crmLeads.find((l) => l.id === leadId);
-    if (!lead) return;
+  const quoteTotalAmount = useMemo(() => {
+    return quoteNetAfterDiscount + quoteTaxAmount;
+  }, [quoteNetAfterDiscount, quoteTaxAmount]);
 
-    setDoc((prev) => ({
-      ...prev,
-      clientName: lead.fullName,
-      companyName: lead.companyName,
-      phone: lead.phone,
-      email: lead.email,
-      address: lead.city ? `${lead.city}, India` : prev.address,
-      subject: `Proposal for ${lead.servicesNeeded.join(', ') || 'Business Solutions'}`,
+  // -------------------------------------------------------------
+  // Quotation Management Actions
+  // -------------------------------------------------------------
+  const handleCreateNewQuote = () => {
+    const nextSeq = (settings.qtnSequence || 5) + 1;
+    const newDocNum = `QTN/2026-27/${String(nextSeq).padStart(3, '0')}`;
+    const today = new Date().toISOString().split('T')[0];
+    const validUntil = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+    const defaultClient = clients[0] || SEED_CLIENTS[0];
+
+    const newQuote: QuotationRecord = {
+      id: 'QTN-' + Date.now().toString(36),
+      quoteNumber: newDocNum,
+      revision: 0,
+      revisionCode: newDocNum,
+      date: today,
+      validityDays: 30,
+      validUntil,
+      clientId: defaultClient.id,
+      clientName: defaultClient.contactPerson,
+      companyName: defaultClient.legalName,
+      address: defaultClient.billingAddress,
+      phone: defaultClient.phone,
+      email: defaultClient.email,
+      gstin: defaultClient.gstin || '',
+      placeOfSupply: defaultClient.placeOfSupply,
+      serviceCategory: 'Payroll',
+      quoteType: 'Per Employee',
+      currency: 'INR',
+      subject: 'Proposal & Commercial Quotation for End-to-End Payroll & Compliance Services',
+      scopeSections: [
+        {
+          title: 'A. One-Time Payroll Setup & Review',
+          items: [...PAYROLL_SCOPE_TEMPLATES.setupAndReview]
+        },
+        {
+          title: 'B. Monthly Payroll & Statutory Compliance',
+          items: [...PAYROLL_SCOPE_TEMPLATES.monthlyPayroll]
+        }
+      ],
+      exclusions: [...PAYROLL_SCOPE_TEMPLATES.exclusions],
+      clientResponsibilities: [...PAYROLL_SCOPE_TEMPLATES.clientResponsibilities],
       items: [
         {
           id: '1',
-          description: `${lead.servicesNeeded.join(' & ') || 'Business Consultation & Execution'} – Tailored for ${lead.businessStage || 'Growing Business'}`,
-          quantity: 1,
-          unit: 'Scope',
-          rate: 15000,
-          amount: 15000
+          description:
+            'Comprehensive Monthly Payroll Consultancy Services (15 employees × ₹100 per employee per month)',
+          quantity: 15,
+          unit: 'Emp/Mo',
+          rate: 100,
+          billingFrequency: 'Monthly',
+          discount: 0,
+          amount: 1500
         }
-      ]
-    }));
+      ],
+      subtotal: 1500,
+      discount: 0,
+      netAfterDiscount: 1500,
+      taxRate: settings.gstRegistered ? 18 : 0,
+      taxType: settings.gstRegistered ? 'cgst_sgst' : 'none',
+      taxAmount: 0,
+      totalAmount: 1500,
+      annualIllustration: 18000,
+      advanceRequired: 0,
+      balanceDue: 1500,
+      paymentTerms: 'Monthly invoices billed at beginning of each calendar month. Payment due within 10 business days.',
+      notes: settings.nonTaxMessage,
+      status: 'Draft',
+      preparedBy: currentUser,
+      internalApprover: 'Management Sign-off',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    const updated = [newQuote, ...quotations];
+    setQuotations(updated);
+    saveQuotations(updated);
+    setSelectedQuote(newQuote);
+    setQuoteEditorMode('edit');
+
+    // Update sequence
+    const updatedSettings = { ...settings, qtnSequence: nextSeq };
+    setSettings(updatedSettings);
+    saveSettings(updatedSettings);
+
+    logAuditEvent(currentUser, currentRole, 'CREATE_QUOTATION', 'Quotation', newDocNum, `Initialized draft quotation.`);
+    showToast(`Quotation ${newDocNum} created successfully.`);
   };
 
+  const handleCreateRevision = (quote: QuotationRecord) => {
+    const nextRev = (quote.revision || 0) + 1;
+    const revCode = `${quote.quoteNumber}-R${nextRev}`;
+
+    const revisedQuote: QuotationRecord = {
+      ...quote,
+      id: 'QTN-' + Date.now().toString(36),
+      revision: nextRev,
+      revisionCode: revCode,
+      status: 'Internal Review',
+      preparedBy: currentUser,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    const updated = [revisedQuote, ...quotations];
+    setQuotations(updated);
+    saveQuotations(updated);
+    setSelectedQuote(revisedQuote);
+    setQuoteEditorMode('edit');
+
+    logAuditEvent(
+      currentUser,
+      currentRole,
+      'CREATE_REVISION',
+      'Quotation',
+      revCode,
+      `Created revision ${revCode} from ${quote.revisionCode}. Original version preserved.`
+    );
+    showToast(`Revision ${revCode} created. Original version protected.`);
+  };
+
+  const handleDuplicateQuote = (quote: QuotationRecord) => {
+    const nextSeq = (settings.qtnSequence || 5) + 1;
+    const newDocNum = `QTN/2026-27/${String(nextSeq).padStart(3, '0')}`;
+
+    const duplicated: QuotationRecord = {
+      ...quote,
+      id: 'QTN-' + Date.now().toString(36),
+      quoteNumber: newDocNum,
+      revision: 0,
+      revisionCode: newDocNum,
+      status: 'Draft',
+      preparedBy: currentUser,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    const updated = [duplicated, ...quotations];
+    setQuotations(updated);
+    saveQuotations(updated);
+    setSelectedQuote(duplicated);
+
+    const updatedSettings = { ...settings, qtnSequence: nextSeq };
+    setSettings(updatedSettings);
+    saveSettings(updatedSettings);
+
+    logAuditEvent(currentUser, currentRole, 'DUPLICATE_QUOTATION', 'Quotation', newDocNum, `Cloned from ${quote.revisionCode}.`);
+    showToast(`Duplicated into new quotation ${newDocNum}.`);
+  };
+
+  const handleStatusChangeQuote = (quoteId: string, newStatus: QuotationRecord['status']) => {
+    const updated = quotations.map((q) => {
+      if (q.id === quoteId) {
+        const item: QuotationRecord = {
+          ...q,
+          status: newStatus,
+          updatedAt: new Date().toISOString(),
+          acceptedAt: newStatus === 'Accepted' ? new Date().toISOString() : q.acceptedAt
+        };
+        return item;
+      }
+      return q;
+    });
+    setQuotations(updated);
+    saveQuotations(updated);
+
+    const target = updated.find((q) => q.id === quoteId);
+    if (target && selectedQuote?.id === quoteId) {
+      setSelectedQuote(target);
+    }
+
+    logAuditEvent(currentUser, currentRole, 'UPDATE_STATUS', 'Quotation', target?.revisionCode || quoteId, `Status changed to ${newStatus}.`);
+    showToast(`Quotation status updated to ${newStatus}.`);
+  };
+
+  // -------------------------------------------------------------
+  // Quote-to-Invoice Conversion (Section 10)
+  // -------------------------------------------------------------
+  const handleConvertToInvoice = (quote: QuotationRecord) => {
+    const nextSeq = (settings.invSequence || 8) + 1;
+    const newInvNum = `INV/2026-27/${String(nextSeq).padStart(3, '0')}`;
+    const today = new Date().toISOString().split('T')[0];
+    const dueDate = new Date(Date.now() + (settings.defaultPaymentDueDays || 10) * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split('T')[0];
+
+    const newInvoice: InvoiceRecord = {
+      id: 'INV-' + Date.now().toString(36),
+      invoiceNumber: newInvNum,
+      date: today,
+      dueDate,
+      quotationRef: quote.revisionCode,
+      invoiceType: quote.quoteType === 'Per Employee' ? 'Per-Employee Recurring' : 'Advance',
+      billingPeriod: new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' }),
+      clientId: quote.clientId,
+      clientName: quote.clientName,
+      companyName: quote.companyName,
+      address: quote.address,
+      phone: quote.phone,
+      email: quote.email,
+      gstin: quote.gstin || '',
+      placeOfSupply: quote.placeOfSupply,
+      subject: quote.subject,
+      scopeItems: quote.scopeSections.flatMap((s) => s.items).slice(0, 8),
+      items: quote.items.map((it) => ({
+        id: it.id,
+        description: it.description,
+        quantity: it.quantity,
+        unit: it.unit,
+        rate: it.rate,
+        billingFrequency: it.billingFrequency,
+        amount: it.amount
+      })),
+      subtotal: quote.subtotal,
+      discount: quote.discount,
+      netAfterDiscount: quote.netAfterDiscount,
+      taxRate: quote.taxRate,
+      taxType: quote.taxType,
+      taxAmount: quote.taxAmount,
+      totalPayable: quote.totalAmount,
+      advancePaid: quote.advanceRequired || 0,
+      tdsDeducted: 0,
+      balanceDue: quote.balanceDue || quote.totalAmount,
+      paymentTerms: quote.paymentTerms,
+      notes: quote.notes,
+      status: 'Issued',
+      isRecurring: quote.quoteType === 'Per Employee' || quote.quoteType === 'Monthly',
+      recurringHeadcount: quote.items.find((i) => i.unit.includes('Emp'))?.quantity || 15,
+      recurringPerEmpRate: quote.items.find((i) => i.unit.includes('Emp'))?.rate || 100,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    // Update invoice list
+    const updatedInvoices = [newInvoice, ...invoices];
+    setInvoices(updatedInvoices);
+    saveInvoices(updatedInvoices);
+
+    // Update quote status to Converted
+    const updatedQuotes = quotations.map((q) =>
+      q.id === quote.id
+        ? {
+            ...q,
+            status: 'Converted to Invoice' as const,
+            convertedToInvoiceId: newInvNum,
+            updatedAt: new Date().toISOString()
+          }
+        : q
+    );
+    setQuotations(updatedQuotes);
+    saveQuotations(updatedQuotes);
+
+    // Update settings sequence
+    const updatedSettings = { ...settings, invSequence: nextSeq };
+    setSettings(updatedSettings);
+    saveSettings(updatedSettings);
+
+    setSelectedInvoice(newInvoice);
+    setActiveTab('invoices');
+
+    logAuditEvent(
+      currentUser,
+      currentRole,
+      'CONVERT_TO_INVOICE',
+      'Invoice',
+      newInvNum,
+      `Converted accepted quote ${quote.revisionCode} into invoice ${newInvNum}.`
+    );
+    showToast(`Quote ${quote.revisionCode} converted to Invoice ${newInvNum}!`);
+  };
+
+  // -------------------------------------------------------------
+  // Recurring Invoice Automation (Section 12)
+  // -------------------------------------------------------------
+  const handleGenerateRecurringInvoices = () => {
+    const recurringParents = invoices.filter((inv) => inv.isRecurring);
+    if (recurringParents.length === 0) {
+      showToast('No active recurring retainer clients found.');
+      return;
+    }
+
+    let nextSeq = settings.invSequence || 8;
+    const newDrafts: InvoiceRecord[] = [];
+    const today = new Date().toISOString().split('T')[0];
+    const dueDate = new Date(Date.now() + 10 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+
+    recurringParents.forEach((parent) => {
+      nextSeq += 1;
+      const invNum = `INV/2026-27/${String(nextSeq).padStart(3, '0')}`;
+      const confirmedHeadcount = recurringHeadcountMap[parent.id] || parent.recurringHeadcount || 15;
+      const rate = parent.recurringPerEmpRate || 100;
+      const computedAmount = confirmedHeadcount * rate;
+
+      const draft: InvoiceRecord = {
+        id: 'INV-' + Date.now().toString(36) + '-' + nextSeq,
+        invoiceNumber: invNum,
+        date: today,
+        dueDate,
+        quotationRef: parent.quotationRef,
+        invoiceType: 'Per-Employee Recurring',
+        billingPeriod: recurringMonth,
+        clientId: parent.clientId,
+        clientName: parent.clientName,
+        companyName: parent.companyName,
+        address: parent.address,
+        phone: parent.phone,
+        email: parent.email,
+        gstin: parent.gstin,
+        placeOfSupply: parent.placeOfSupply,
+        subject: `Monthly Payroll & Compliance Retainer – ${recurringMonth}`,
+        scopeItems: parent.scopeItems,
+        items: [
+          {
+            id: '1',
+            description: `Comprehensive Monthly Payroll Services (${confirmedHeadcount} employees × ₹${rate} per employee per month)`,
+            quantity: confirmedHeadcount,
+            unit: 'Emp/Mo',
+            rate,
+            billingFrequency: 'Monthly',
+            amount: computedAmount
+          }
+        ],
+        subtotal: computedAmount,
+        discount: 0,
+        netAfterDiscount: computedAmount,
+        taxRate: parent.taxRate,
+        taxType: parent.taxType,
+        taxAmount: (computedAmount * parent.taxRate) / 100,
+        totalPayable: computedAmount + (computedAmount * parent.taxRate) / 100,
+        advancePaid: 0,
+        tdsDeducted: 0,
+        balanceDue: computedAmount + (computedAmount * parent.taxRate) / 100,
+        paymentTerms: parent.paymentTerms,
+        notes: parent.notes,
+        status: 'Draft',
+        isRecurring: true,
+        recurringHeadcount: confirmedHeadcount,
+        recurringPerEmpRate: rate,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString()
+      };
+      newDrafts.push(draft);
+    });
+
+    const updatedInvoices = [...newDrafts, ...invoices];
+    setInvoices(updatedInvoices);
+    saveInvoices(updatedInvoices);
+
+    const updatedSettings = { ...settings, invSequence: nextSeq };
+    setSettings(updatedSettings);
+    saveSettings(updatedSettings);
+
+    setShowRecurringModal(false);
+    logAuditEvent(
+      currentUser,
+      currentRole,
+      'RECURRING_BATCH_DRAFT',
+      'Invoice',
+      `${newDrafts.length} Invoices`,
+      `Generated ${newDrafts.length} recurring draft invoices for ${recurringMonth} with confirmed headcounts.`
+    );
+    showToast(`Generated ${newDrafts.length} recurring payroll drafts for ${recurringMonth}.`);
+  };
+
+  // -------------------------------------------------------------
+  // Record Payment & Receipt Generation (Section 14)
+  // -------------------------------------------------------------
+  const handleRecordPaymentSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    const inv = invoices.find((i) => i.id === paymentForm.invoiceId);
+    if (!inv) return;
+
+    const nextRecSeq = (settings.recSequence || 3) + 1;
+    const recNum = `REC/2026-27/${String(nextRecSeq).padStart(3, '0')}`;
+
+    const newPayment: PaymentRecord = {
+      id: 'PAY-' + Date.now().toString(36),
+      receiptNumber: recNum,
+      invoiceId: inv.id,
+      invoiceNumber: inv.invoiceNumber,
+      clientId: inv.clientId,
+      clientName: inv.clientName,
+      companyName: inv.companyName,
+      amount: Number(paymentForm.amount),
+      tdsDeducted: Number(paymentForm.tdsDeducted || 0),
+      paymentDate: paymentForm.paymentDate,
+      paymentMode: paymentForm.paymentMode,
+      utrReference: paymentForm.utrReference,
+      notes: paymentForm.notes,
+      createdAt: new Date().toISOString()
+    };
+
+    const updatedPayments = [newPayment, ...payments];
+    setPayments(updatedPayments);
+    savePayments(updatedPayments);
+
+    // Update invoice paid & balance amounts
+    const totalPaidNow = (inv.advancePaid || 0) + Number(paymentForm.amount);
+    const newBalance = Math.max(0, inv.totalPayable - totalPaidNow - Number(paymentForm.tdsDeducted || 0));
+    const newStatus: InvoiceRecord['status'] = newBalance === 0 ? 'Paid' : 'Partially Paid';
+
+    const updatedInvoices = invoices.map((i) =>
+      i.id === inv.id
+        ? {
+            ...i,
+            advancePaid: totalPaidNow,
+            tdsDeducted: (i.tdsDeducted || 0) + Number(paymentForm.tdsDeducted || 0),
+            balanceDue: newBalance,
+            status: newStatus,
+            updatedAt: new Date().toISOString()
+          }
+        : i
+    );
+    setInvoices(updatedInvoices);
+    saveInvoices(updatedInvoices);
+
+    const updatedSettings = { ...settings, recSequence: nextRecSeq };
+    setSettings(updatedSettings);
+    saveSettings(updatedSettings);
+
+    setShowPaymentModal(false);
+    setSelectedReceipt(newPayment);
+    setActiveTab('receipts');
+
+    logAuditEvent(
+      currentUser,
+      currentRole,
+      'RECORD_PAYMENT',
+      'Payment',
+      recNum,
+      `Recorded ₹${paymentForm.amount} for ${inv.invoiceNumber} (UTR: ${paymentForm.utrReference}). Status: ${newStatus}.`
+    );
+    showToast(`Payment recorded. Receipt ${recNum} generated!`);
+  };
+
+  // -------------------------------------------------------------
+  // Add New Client (Section 3)
+  // -------------------------------------------------------------
+  const handleSaveNewClient = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newClientForm.legalName) return;
+
+    const newClient: ClientRecord = {
+      id: 'CLI-' + Date.now().toString(36).toUpperCase(),
+      legalName: newClientForm.legalName || '',
+      tradingName: newClientForm.tradingName || newClientForm.legalName || '',
+      contactPerson: newClientForm.contactPerson || 'Management',
+      phone: newClientForm.phone || '+91 98000 00000',
+      email: newClientForm.email || 'info@client.com',
+      billingAddress: newClientForm.billingAddress || 'Chennai, India',
+      state: newClientForm.state || 'Tamil Nadu',
+      placeOfSupply: newClientForm.placeOfSupply || 'Tamil Nadu (33)',
+      country: 'India',
+      gstin: newClientForm.gstin || '',
+      pan: newClientForm.pan || '',
+      defaultPaymentTerms: newClientForm.defaultPaymentTerms || 'Net 10 Business Days',
+      internalOwner: newClientForm.internalOwner || currentUser,
+      notes: newClientForm.notes || '',
+      createdAt: new Date().toISOString()
+    };
+
+    const updated = [newClient, ...clients];
+    setClients(updated);
+    saveClients(updated);
+    setShowNewClientModal(false);
+
+    logAuditEvent(currentUser, currentRole, 'CREATE_CLIENT', 'Client', newClient.id, `Added client ${newClient.legalName}`);
+    showToast(`Client ${newClient.legalName} saved.`);
+  };
+
+  // -------------------------------------------------------------
+  // Dispatch Actions: Print, WhatsApp, JSON Export
+  // -------------------------------------------------------------
   const handlePrint = () => {
     window.print();
   };
 
-  const generateWhatsAppMessage = () => {
-    const title = doc.type === 'invoice' ? 'Invoice' : 'Commercial Quotation';
-    const msg =
-      `*People Point Consultants — Official ${title}*\n\n` +
-      `*Doc Ref:* ${doc.docNumber}\n` +
-      `*Date:* ${doc.date}\n` +
-      `*Client:* ${doc.companyName} (${doc.clientName})\n` +
-      `*Subject:* ${doc.subject}\n\n` +
-      `*Summary of Charges:*\n` +
-      `• Subtotal: ₹${subtotal.toLocaleString('en-IN')}\n` +
-      (doc.discount > 0 ? `• Discount: -₹${doc.discount.toLocaleString('en-IN')}\n` : '') +
-      `• Total Amount: ₹${totalPayable.toLocaleString('en-IN')}\n` +
-      (doc.advancePaid > 0
-        ? `• Advance Amount: ₹${doc.advancePaid.toLocaleString('en-IN')}\n• Balance Due: ₹${balanceDue.toLocaleString('en-IN')}\n`
-        : '') +
-      `\n*Bank Transfer Details:*\n` +
-      `A/c Name: ${doc.bankDetails.accountName}\n` +
-      `Bank: ${doc.bankDetails.bankName}\n` +
-      `A/c No: ${doc.bankDetails.accountNumber}\n` +
-      `IFSC: ${doc.bankDetails.ifsc}\n\n` +
-      `For queries or formal execution, reply directly to our partner desk at +91 88073 04713.`;
+  const handleWhatsAppDispatch = () => {
+    const isInvoice = activeTab === 'invoices';
+    const targetDoc = isInvoice ? selectedInvoice : selectedQuote;
+    if (!targetDoc) return;
 
-    const phoneClean = doc.phone.replace(/[^0-9]/g, '');
-    const url = phoneClean
-      ? `https://wa.me/${phoneClean.startsWith('91') ? phoneClean : '91' + phoneClean}?text=${encodeURIComponent(msg)}`
+    const docType = isInvoice ? 'Invoice' : 'Commercial Quotation';
+    const docNum = isInvoice ? (targetDoc as InvoiceRecord).invoiceNumber : (targetDoc as QuotationRecord).revisionCode;
+    const total = isInvoice ? (targetDoc as InvoiceRecord).totalPayable : (targetDoc as QuotationRecord).totalAmount;
+
+    const msg =
+      `*People Point Consultants — Official ${docType}*\n\n` +
+      `*Reference:* ${docNum}\n` +
+      `*Date:* ${targetDoc.date}\n` +
+      `*Client:* ${targetDoc.companyName} (${targetDoc.clientName})\n` +
+      `*Subject:* ${targetDoc.subject}\n\n` +
+      `*Commercial Summary:*\n` +
+      `• Total Amount: ₹${total.toLocaleString('en-IN')}\n` +
+      (targetDoc.discount > 0 ? `• Courtesy Discount: -₹${targetDoc.discount.toLocaleString('en-IN')}\n` : '') +
+      `• Payment Terms: ${targetDoc.paymentTerms}\n\n` +
+      `*Bank Transfer Details:*\n` +
+      `• A/c Name: ${settings.bankDetails.accountName}\n` +
+      `• Bank: ${settings.bankDetails.bankName}\n` +
+      `• A/c No: ${settings.bankDetails.accountNumber}\n` +
+      `• IFSC: ${settings.bankDetails.ifsc}\n\n` +
+      `For review or formal execution, connect with our Single Point of Contact (SPOC) at +91 88073 04713.`;
+
+    const cleanPhone = targetDoc.phone.replace(/[^0-9]/g, '');
+    const url = cleanPhone
+      ? `https://wa.me/${cleanPhone.startsWith('91') ? cleanPhone : '91' + cleanPhone}?text=${encodeURIComponent(msg)}`
       : `https://wa.me/918807304713?text=${encodeURIComponent(msg)}`;
+
+    logAuditEvent(currentUser, currentRole, 'DISPATCH_WHATSAPP', isInvoice ? 'Invoice' : 'Quotation', docNum, `Sent to ${targetDoc.phone}`);
     window.open(url, '_blank');
   };
 
   const handleExportJSON = () => {
+    const isInvoice = activeTab === 'invoices';
+    const targetDoc = isInvoice ? selectedInvoice : selectedQuote;
+    if (!targetDoc) return;
+
+    const docNum = isInvoice ? (targetDoc as InvoiceRecord).invoiceNumber : (targetDoc as QuotationRecord).revisionCode;
     const payload = {
-      source: 'People Point Web Admin',
-      qmsIntegration: 'D:\\Quote Create',
-      generatedAt: new Date().toISOString(),
-      document: {
-        ...doc,
-        totals: {
-          subtotal,
-          discount: doc.discount,
-          taxAmount,
-          totalPayable,
-          advancePaid: doc.advancePaid,
-          balanceDue
-        }
-      }
+      source: 'People Point Sales & Billing System',
+      qmsIntegrationPath: 'D:\\Quote Create',
+      exportedAt: new Date().toISOString(),
+      documentType: isInvoice ? 'INVOICE' : 'QUOTATION',
+      data: targetDoc,
+      organization: settings
     };
+
     const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
     a.href = url;
-    a.download = `${doc.docNumber.replace(/[\/\\]/g, '_')}_${doc.type}.json`;
+    a.download = `${docNum.replace(/[\/\\]/g, '_')}.json`;
     a.click();
     URL.revokeObjectURL(url);
+    showToast(`Exported ${docNum} as QMS JSON.`);
   };
 
+  // -------------------------------------------------------------
+  // Executive Reports & KPI Computations (Section 15)
+  // -------------------------------------------------------------
+  const reportMetrics = useMemo(() => {
+    const quotesThisMonth = quotations.length;
+    const quotesAccepted = quotations.filter((q) => q.status === 'Accepted' || q.status === 'Converted to Invoice').length;
+    const conversionRate = quotesThisMonth > 0 ? Math.round((quotesAccepted / quotesThisMonth) * 100) : 0;
+    const totalQuotedValue = quotations.reduce((sum, q) => sum + (q.totalAmount || 0), 0);
+
+    const totalInvoicedValue = invoices.reduce((sum, i) => sum + (i.totalPayable || 0), 0);
+    const totalCollected = payments.reduce((sum, p) => sum + (p.amount || 0), 0);
+    const totalOutstanding = invoices.reduce((sum, i) => sum + (i.balanceDue || 0), 0);
+    const overdueInvoices = invoices.filter((i) => i.status === 'Overdue' || (i.balanceDue > 0 && new Date(i.dueDate) < new Date()));
+    const totalOverdue = overdueInvoices.reduce((sum, i) => sum + (i.balanceDue || 0), 0);
+
+    // Monthly Recurring Revenue (MRR) from active recurring clients
+    const recurringMRR = invoices
+      .filter((i) => i.isRecurring)
+      .reduce((sum, i) => {
+        const item = i.items[0];
+        return sum + (item ? item.amount : 0);
+      }, 0);
+
+    return {
+      quotesThisMonth,
+      quotesAccepted,
+      conversionRate,
+      totalQuotedValue,
+      totalInvoicedValue,
+      totalCollected,
+      totalOutstanding,
+      totalOverdue,
+      recurringMRR
+    };
+  }, [quotations, invoices, payments]);
+
   return (
-    <div className="bg-slate-50 min-h-screen">
+    <div className="bg-slate-50 min-h-screen text-slate-900 font-sans">
       {/* Print stylesheet to isolate printable area */}
       <style jsx global>{`
         @media print {
           body {
             background: white !important;
             color: black !important;
+            padding: 0 !important;
+            margin: 0 !important;
           }
           .no-print {
             display: none !important;
-          }
-          .print-only {
-            display: block !important;
           }
           .printable-doc {
             box-shadow: none !important;
@@ -376,655 +801,1803 @@ export default function AdminBillingPage() {
             padding: 0 !important;
             margin: 0 !important;
             max-width: 100% !important;
+            width: 100% !important;
           }
           @page {
-            margin: 1.5cm;
+            margin: 1.2cm;
             size: A4 portrait;
           }
         }
       `}</style>
 
-      {/* Top Navbar & Admin Navigation */}
-      <div className="no-print bg-white border-b border-slate-200 sticky top-0 z-20 shadow-xs">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3.5 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+      {/* Toast Banner */}
+      {toastMsg && (
+        <div className="no-print fixed top-5 right-5 z-50 bg-purple-950 text-white px-4 py-2.5 rounded-2xl shadow-xl flex items-center gap-2 border border-purple-800 text-xs font-semibold animate-in fade-in slide-in-from-top-3 duration-200">
+          <CheckCircle2 className="w-4 h-4 text-emerald-400 shrink-0" />
+          <span>{toastMsg}</span>
+        </div>
+      )}
+
+      {/* Top Header & Role Bar (no-print) */}
+      <div className="no-print bg-white border-b border-slate-200 sticky top-0 z-30 shadow-2xs">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 py-3 flex flex-col md:flex-row md:items-center justify-between gap-3">
           <div className="flex items-center gap-3">
             <Link
               href="/admin/leads"
               className="p-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors"
-              title="Back to CRM Leads"
+              title="Return to CRM Leads"
             >
               <ArrowLeft className="w-4 h-4" />
             </Link>
             <div>
               <div className="flex items-center gap-2">
-                <span className="text-xs font-black uppercase tracking-wider text-purple-900 bg-purple-100 px-2 py-0.5 rounded">
-                  Admin Billing
+                <span className="text-[10px] font-black uppercase tracking-widest text-purple-900 bg-purple-100 px-2 py-0.5 rounded">
+                  Admin Platform
                 </span>
-                <span className="text-xs text-slate-400">|</span>
-                <span className="text-xs font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 flex items-center gap-1">
-                  <ShieldCheck className="w-3 h-3" /> QMS Synced
+                <span className="text-xs text-slate-300">|</span>
+                <span className="text-xs font-bold text-slate-900">
+                  Sales & Billing Automation
+                </span>
+                <span className="text-[11px] font-semibold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded border border-emerald-200 flex items-center gap-1">
+                  <ShieldCheck className="w-3 h-3" /> QMS Active
                 </span>
               </div>
-              <h1 className="text-lg sm:text-xl font-black text-slate-900 leading-tight">
-                Quotation & Invoice Automation Studio
+              <h1 className="text-base sm:text-lg font-black text-slate-900 leading-tight">
+                Quotation, Invoice, Payment & Scope Studio
               </h1>
             </div>
           </div>
 
-          <div className="flex items-center gap-2">
-            <Link
-              href="/admin/leads"
-              className="px-3 py-1.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-xs font-bold text-slate-700 transition-all"
-            >
-              ← CRM Leads
-            </Link>
+          <div className="flex flex-wrap items-center gap-2">
+            {/* Role Switcher */}
+            <div className="flex items-center gap-1.5 bg-slate-100 px-2.5 py-1 rounded-xl border border-slate-200 text-xs">
+              <ShieldAlert className="w-3.5 h-3.5 text-purple-800" />
+              <span className="font-semibold text-slate-600 hidden sm:inline">Role:</span>
+              <select
+                value={currentRole}
+                onChange={(e) => {
+                  const r = e.target.value as UserRole;
+                  setCurrentRole(r);
+                  showToast(`Switched active session to ${r} role.`);
+                }}
+                className="bg-transparent font-bold text-purple-950 focus:outline-none cursor-pointer"
+              >
+                <option value="Admin">Admin</option>
+                <option value="Sales / SPOC">Sales / SPOC</option>
+                <option value="Manager">Manager</option>
+                <option value="Accounts">Accounts</option>
+                <option value="Management">Management</option>
+              </select>
+            </div>
+
+            {/* Quick Actions */}
             <button
               onClick={handlePrint}
-              className="px-4 py-2 rounded-xl bg-purple-900 hover:bg-purple-950 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all"
+              className="px-3 py-1.5 rounded-xl bg-purple-900 hover:bg-purple-950 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors"
             >
               <Printer className="w-3.5 h-3.5" />
-              <span>Print / Save PDF</span>
+              <span>Print A4</span>
             </button>
             <button
-              onClick={generateWhatsAppMessage}
-              className="px-4 py-2 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all"
+              onClick={handleWhatsAppDispatch}
+              className="px-3 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors"
             >
-              <MessageCircle className="w-3.5 h-3.5" />
-              <span>WhatsApp Dispatch</span>
+              <MessageCircle className="w-3.5 h-3.5 fill-white" />
+              <span>WhatsApp</span>
             </button>
             <button
               onClick={handleExportJSON}
-              className="px-3 py-2 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition-all"
-              title="Export JSON payload compatible with D:\Quote Create QMS"
+              className="px-2.5 py-1.5 rounded-xl bg-slate-800 hover:bg-slate-900 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors"
+              title="Download structured JSON"
             >
               <Download className="w-3.5 h-3.5" />
-              <span className="hidden sm:inline">QMS JSON</span>
+              <span className="hidden md:inline">QMS JSON</span>
             </button>
           </div>
         </div>
+
+        {/* Section 2: Full Sales & Billing Navigation Menu */}
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 flex overflow-x-auto gap-1 py-1 border-t border-slate-100 text-xs">
+          {[
+            { id: 'quotations', label: 'Quotations', count: quotations.length },
+            { id: 'invoices', label: 'Invoices', count: invoices.length },
+            { id: 'clients', label: 'Clients', count: clients.length },
+            { id: 'payments', label: 'Payments', count: payments.length },
+            { id: 'receipts', label: 'Receipts', count: payments.length },
+            { id: 'rate_cards', label: 'Rate Cards', count: SEED_RATE_CARDS.length },
+            { id: 'templates', label: 'Templates' },
+            { id: 'reports', label: 'Reports & Dashboard' },
+            { id: 'settings', label: 'Settings' },
+            { id: 'audit', label: 'Audit Trail', count: auditLogs.length }
+          ].map((tab) => {
+            const isActive = activeTab === tab.id;
+            return (
+              <button
+                key={tab.id}
+                onClick={() => setActiveTab(tab.id as ActiveTab)}
+                className={`px-3 py-2 font-bold whitespace-nowrap rounded-xl transition-all flex items-center gap-1.5 ${
+                  isActive
+                    ? 'bg-purple-900 text-white shadow-xs'
+                    : 'text-slate-600 hover:text-purple-950 hover:bg-slate-100'
+                }`}
+              >
+                <span>{tab.label}</span>
+                {tab.count !== undefined && (
+                  <span
+                    className={`px-1.5 py-0.2 rounded-full text-[10px] font-extrabold ${
+                      isActive ? 'bg-white/20 text-white' : 'bg-slate-200 text-slate-700'
+                    }`}
+                  >
+                    {tab.count}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6 grid grid-cols-1 lg:grid-cols-12 gap-8">
-        {/* LEFT COLUMN: Controls & Presets (hidden during print) */}
-        <div className="no-print lg:col-span-5 space-y-6">
-          {/* Preset Selector */}
-          <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xs font-black uppercase tracking-wider text-slate-500 flex items-center gap-1.5">
-                <Sparkles className="w-3.5 h-3.5 text-purple-700" />
-                <span>1. Load Standard Preset</span>
-              </h2>
-              <span className="text-[11px] text-slate-400 font-medium">Real business templates</span>
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-2">
-              <button
-                type="button"
-                onClick={() => setDoc(SHREE_ABHI_INVOICE_PRESET)}
-                className={`p-3 rounded-xl border text-left text-xs transition-all ${
-                  doc.docNumber === SHREE_ABHI_INVOICE_PRESET.docNumber
-                    ? 'bg-purple-50 border-purple-800 text-purple-950 font-bold shadow-2xs ring-1 ring-purple-800'
-                    : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300'
-                }`}
-              >
-                <div className="font-bold">Shree Abhi</div>
-                <div className="text-[10px] text-slate-500 mt-0.5">INV/2026-27/007 (Setup + Payroll)</div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setDoc(B_SEC_QUOTATION_PRESET)}
-                className={`p-3 rounded-xl border text-left text-xs transition-all ${
-                  doc.docNumber === B_SEC_QUOTATION_PRESET.docNumber
-                    ? 'bg-purple-50 border-purple-800 text-purple-950 font-bold shadow-2xs ring-1 ring-purple-800'
-                    : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300'
-                }`}
-              >
-                <div className="font-bold">B-Sec Tech</div>
-                <div className="text-[10px] text-slate-500 mt-0.5">QTN/2026-27/001 (Payroll Quote)</div>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setDoc(LAUNCH_360_PRESET)}
-                className={`p-3 rounded-xl border text-left text-xs transition-all ${
-                  doc.docNumber === LAUNCH_360_PRESET.docNumber
-                    ? 'bg-purple-50 border-purple-800 text-purple-950 font-bold shadow-2xs ring-1 ring-purple-800'
-                    : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300'
-                }`}
-              >
-                <div className="font-bold">Launch 360°</div>
-                <div className="text-[10px] text-slate-500 mt-0.5">Setup + Retainer</div>
-              </button>
-            </div>
-
-            {/* Import CRM Lead */}
-            {crmLeads.length > 0 && (
-              <div className="pt-2 border-t border-slate-100">
-                <label className="block text-xs font-bold text-slate-700 mb-1.5 flex items-center justify-between">
-                  <span>Import Active CRM Lead</span>
-                  <span className="text-[10px] text-purple-700 font-semibold">{crmLeads.length} leads in queue</span>
-                </label>
-                <select
-                  value={selectedLeadId}
-                  onChange={(e) => handleLeadImport(e.target.value)}
-                  className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 bg-slate-50 focus:bg-white focus:outline-none focus:ring-2 focus:ring-purple-700"
+      {/* MAIN CONTENT AREA */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
+        {/* ========================================================= */}
+        {/* TAB 1: QUOTATIONS MODULE (Sections 4, 5, 6, 8, 9, 10)       */}
+        {/* ========================================================= */}
+        {activeTab === 'quotations' && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* Left Column: Quotation Master List & Actions (no-print) */}
+            <div className="no-print lg:col-span-5 space-y-5">
+              <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex items-center justify-between">
+                <div>
+                  <h3 className="font-extrabold text-sm text-slate-900">Quotation Master</h3>
+                  <p className="text-xs text-slate-500">Auto-numbering, scope builder & revisions</p>
+                </div>
+                <button
+                  onClick={handleCreateNewQuote}
+                  className="py-2 px-3.5 rounded-xl bg-purple-900 hover:bg-purple-950 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs transition-colors"
                 >
-                  <option value="">-- Choose a Captured Lead to Auto-Fill --</option>
-                  {crmLeads.map((lead) => (
-                    <option key={lead.id} value={lead.id}>
-                      {lead.fullName} — {lead.companyName} ({lead.phone})
-                    </option>
-                  ))}
-                </select>
-              </div>
-            )}
-          </div>
-
-          {/* Document Config Editor */}
-          <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
-            <h2 className="text-xs font-black uppercase tracking-wider text-slate-500">
-              2. Document Header & Client Data
-            </h2>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Document Type</label>
-                <select
-                  value={doc.type}
-                  onChange={(e) =>
-                    setDoc({
-                      ...doc,
-                      type: e.target.value as 'invoice' | 'quotation',
-                      docNumber:
-                        e.target.value === 'invoice'
-                          ? doc.docNumber.replace('QTN', 'INV')
-                          : doc.docNumber.replace('INV', 'QTN')
-                    })
-                  }
-                  className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 bg-white"
-                >
-                  <option value="invoice">Tax Invoice / Bill</option>
-                  <option value="quotation">Formal Commercial Quotation</option>
-                </select>
-              </div>
-              <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Document Ref No.</label>
-                <input
-                  type="text"
-                  value={doc.docNumber}
-                  onChange={(e) => setDoc({ ...doc, docNumber: e.target.value })}
-                  className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200"
-                />
-              </div>
-            </div>
-
-            <div className="grid grid-cols-2 gap-3">
-              <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Issue Date</label>
-                <input
-                  type="date"
-                  value={doc.date}
-                  onChange={(e) => setDoc({ ...doc, date: e.target.value })}
-                  className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200"
-                />
-              </div>
-              <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Due / Validity Date</label>
-                <input
-                  type="date"
-                  value={doc.validityDate}
-                  onChange={(e) => setDoc({ ...doc, validityDate: e.target.value })}
-                  className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200"
-                />
-              </div>
-            </div>
-
-            <div className="space-y-2">
-              <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Client Entity / Company Name</label>
-                <input
-                  type="text"
-                  value={doc.companyName}
-                  onChange={(e) => setDoc({ ...doc, companyName: e.target.value })}
-                  className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 font-semibold"
-                />
+                  <Plus className="w-3.5 h-3.5" />
+                  <span>New Quotation</span>
+                </button>
               </div>
 
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Client Contact Name</label>
-                  <input
-                    type="text"
-                    value={doc.clientName}
-                    onChange={(e) => setDoc({ ...doc, clientName: e.target.value })}
-                    className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Client Phone / WhatsApp</label>
-                  <input
-                    type="text"
-                    value={doc.phone}
-                    onChange={(e) => setDoc({ ...doc, phone: e.target.value })}
-                    className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200"
-                  />
-                </div>
-              </div>
-
-              <div className="grid grid-cols-2 gap-2">
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Client Email</label>
-                  <input
-                    type="email"
-                    value={doc.email}
-                    onChange={(e) => setDoc({ ...doc, email: e.target.value })}
-                    className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Client Location / Address</label>
-                  <input
-                    type="text"
-                    value={doc.address}
-                    onChange={(e) => setDoc({ ...doc, address: e.target.value })}
-                    className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200"
-                  />
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Subject / Re:</label>
-                <input
-                  type="text"
-                  value={doc.subject}
-                  onChange={(e) => setDoc({ ...doc, subject: e.target.value })}
-                  className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 font-medium"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* Line Items Editor */}
-          <div className="p-5 rounded-2xl bg-white border border-slate-200 shadow-xs space-y-4">
-            <div className="flex items-center justify-between">
-              <h2 className="text-xs font-black uppercase tracking-wider text-slate-500">
-                3. Commercial Line Items
-              </h2>
-              <button
-                type="button"
-                onClick={addItem}
-                className="px-2.5 py-1 rounded-lg bg-purple-100 hover:bg-purple-200 text-purple-900 text-xs font-bold flex items-center gap-1 transition-colors"
-              >
-                <Plus className="w-3 h-3" /> Add Item
-              </button>
-            </div>
-
-            <div className="space-y-3">
-              {doc.items.map((item, idx) => (
-                <div key={item.id || idx} className="p-3 rounded-xl border border-slate-200 bg-slate-50 space-y-2">
-                  <div className="flex items-start justify-between gap-2">
-                    <span className="text-[10px] font-bold text-slate-400 bg-white px-2 py-0.5 rounded border border-slate-200">
-                      Item #{idx + 1}
+              {/* CRM Lead Direct Import Banner (Section 17) */}
+              {crmLeads.length > 0 && (
+                <div className="bg-purple-50/90 border border-purple-200 rounded-2xl p-3.5 space-y-2">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="font-bold text-purple-950 flex items-center gap-1.5">
+                      <Sparkles className="w-3.5 h-3.5 text-purple-700" />
+                      Import from Qualified CRM Leads
                     </span>
-                    {doc.items.length > 1 && (
-                      <button
-                        type="button"
-                        onClick={() => removeItem(idx)}
-                        className="text-slate-400 hover:text-rose-600 p-1"
-                        title="Remove Item"
-                      >
-                        <Trash2 className="w-3.5 h-3.5" />
-                      </button>
-                    )}
+                    <Link href="/admin/leads" className="text-[11px] text-purple-700 underline font-semibold">
+                      View All
+                    </Link>
                   </div>
-                  <textarea
-                    rows={2}
-                    value={item.description}
-                    onChange={(e) => handleItemChange(idx, 'description', e.target.value)}
-                    placeholder="Particulars / Service Description"
-                    className="w-full text-xs p-2 rounded-lg border border-slate-200 bg-white"
-                  />
-                  <div className="grid grid-cols-3 gap-2">
-                    <div>
-                      <label className="block text-[10px] text-slate-500 mb-0.5">Qty / Units</label>
-                      <input
-                        type="number"
-                        min="1"
-                        value={item.quantity}
-                        onChange={(e) => handleItemChange(idx, 'quantity', e.target.value)}
-                        className="w-full text-xs p-1.5 rounded border border-slate-200 bg-white text-center"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] text-slate-500 mb-0.5">Rate (₹)</label>
-                      <input
-                        type="number"
-                        value={item.rate}
-                        onChange={(e) => handleItemChange(idx, 'rate', e.target.value)}
-                        className="w-full text-xs p-1.5 rounded border border-slate-200 bg-white text-center"
-                      />
-                    </div>
-                    <div>
-                      <label className="block text-[10px] text-slate-500 mb-0.5">Amount (₹)</label>
-                      <div className="text-xs font-bold text-slate-900 p-1.5 bg-slate-100 rounded text-center">
-                        ₹{(item.amount || 0).toLocaleString('en-IN')}
+                  <div className="flex items-center gap-2">
+                    <select
+                      onChange={(e) => {
+                        const lead = crmLeads.find((l) => l.id === e.target.value);
+                        if (!lead) return;
+                        // Populate into selected quote
+                        if (selectedQuote) {
+                          setSelectedQuote({
+                            ...selectedQuote,
+                            companyName: lead.companyName,
+                            clientName: lead.fullName,
+                            phone: lead.phone,
+                            email: lead.email,
+                            address: lead.city ? `${lead.city}, India` : selectedQuote.address,
+                            subject: `Proposal for ${lead.servicesNeeded.join(', ') || 'Business Solutions'}`
+                          });
+                          showToast(`Imported lead ${lead.fullName} (${lead.companyName}) into quotation.`);
+                        }
+                      }}
+                      className="flex-1 text-xs px-2.5 py-1.5 rounded-xl border border-purple-200 bg-white focus:outline-none"
+                    >
+                      <option value="">Select a qualified lead to auto-fill...</option>
+                      {crmLeads.map((l) => (
+                        <option key={l.id} value={l.id}>
+                          {l.fullName} — {l.companyName} ({l.servicesNeeded[0] || 'General'})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                </div>
+              )}
+
+              {/* Quotation Cards List */}
+              <div className="space-y-2.5 max-h-[70vh] overflow-y-auto pr-1">
+                {quotations.map((quote) => {
+                  const isSelected = selectedQuote?.id === quote.id;
+                  return (
+                    <div
+                      key={quote.id}
+                      onClick={() => setSelectedQuote(quote)}
+                      className={`p-4 rounded-2xl border transition-all cursor-pointer ${
+                        isSelected
+                          ? 'bg-purple-50/70 border-purple-400 shadow-xs'
+                          : 'bg-white border-slate-200 hover:border-slate-300'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono font-black text-xs text-purple-950">
+                              {quote.revisionCode}
+                            </span>
+                            <span
+                              className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                quote.status === 'Accepted' || quote.status === 'Converted to Invoice'
+                                  ? 'bg-emerald-100 text-emerald-800'
+                                  : quote.status === 'Approved'
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : quote.status === 'Sent'
+                                  ? 'bg-amber-100 text-amber-800'
+                                  : 'bg-slate-100 text-slate-700'
+                              }`}
+                            >
+                              {quote.status}
+                            </span>
+                          </div>
+                          <h4 className="font-bold text-xs text-slate-900 mt-1 line-clamp-1">
+                            {quote.companyName}
+                          </h4>
+                          <p className="text-[11px] text-slate-500 mt-0.5 line-clamp-1">
+                            {quote.subject}
+                          </p>
+                        </div>
+
+                        <div className="text-right">
+                          <span className="font-extrabold text-xs text-slate-900">
+                            ₹{quote.totalAmount.toLocaleString('en-IN')}
+                          </span>
+                          <div className="text-[10px] text-slate-400 mt-0.5">{quote.date}</div>
+                        </div>
+                      </div>
+
+                      {/* Card Action Shortcuts */}
+                      <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100 text-[11px]">
+                        <span className="text-slate-400 font-medium">
+                          {quote.serviceCategory} • {quote.quoteType}
+                        </span>
+                        <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                          <button
+                            onClick={() => handleCreateRevision(quote)}
+                            className="p-1 rounded-lg text-slate-500 hover:text-purple-800 hover:bg-slate-100 transition-colors"
+                            title="Create Revision (R1, R2...)"
+                          >
+                            <Copy className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            onClick={() => handleDuplicateQuote(quote)}
+                            className="p-1 rounded-lg text-slate-500 hover:text-purple-800 hover:bg-slate-100 transition-colors"
+                            title="Duplicate Quote"
+                          >
+                            <RefreshCw className="w-3.5 h-3.5" />
+                          </button>
+                          {quote.status === 'Accepted' && (
+                            <button
+                              onClick={() => handleConvertToInvoice(quote)}
+                              className="px-2 py-0.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] flex items-center gap-1 shadow-2xs"
+                            >
+                              <ArrowRight className="w-3 h-3" />
+                              <span>To Invoice</span>
+                            </button>
+                          )}
+                        </div>
                       </div>
                     </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Right Column: Interactive Quotation A4 View / Live Editor */}
+            <div className="lg:col-span-7">
+              {selectedQuote ? (
+                <div className="space-y-4">
+                  {/* Status & Revision Controls Toolbar (no-print) */}
+                  <div className="no-print bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-3">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold text-slate-500">Status Workflow:</span>
+                      <select
+                        value={selectedQuote.status}
+                        onChange={(e) =>
+                          handleStatusChangeQuote(selectedQuote.id, e.target.value as QuotationRecord['status'])
+                        }
+                        className="text-xs font-bold px-2.5 py-1 rounded-xl border border-slate-200 bg-slate-50 focus:outline-none"
+                      >
+                        <option value="Draft">Draft</option>
+                        <option value="Internal Review">Internal Review</option>
+                        <option value="Approved">Approved</option>
+                        <option value="Sent">Sent</option>
+                        <option value="Viewed">Viewed</option>
+                        <option value="Negotiation">Negotiation</option>
+                        <option value="Accepted">Accepted</option>
+                        <option value="Rejected">Rejected</option>
+                        <option value="Expired">Expired</option>
+                        <option value="Converted to Invoice">Converted to Invoice</option>
+                      </select>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => handleCreateRevision(selectedQuote)}
+                        className="px-3 py-1.5 rounded-xl border border-purple-200 bg-purple-50 text-purple-900 font-bold text-xs hover:bg-purple-100 flex items-center gap-1 transition-colors"
+                      >
+                        <Edit3 className="w-3 h-3" />
+                        <span>Revise ({selectedQuote.quoteNumber}-R{(selectedQuote.revision || 0) + 1})</span>
+                      </button>
+                      {selectedQuote.status !== 'Converted to Invoice' && (
+                        <button
+                          onClick={() => handleConvertToInvoice(selectedQuote)}
+                          className="px-3.5 py-1.5 rounded-xl bg-gradient-to-r from-purple-900 to-rose-700 text-white font-bold text-xs hover:opacity-95 flex items-center gap-1.5 shadow-xs transition-all"
+                        >
+                          <CreditCard className="w-3.5 h-3.5" />
+                          <span>Convert to Invoice</span>
+                        </button>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Clean Authentic A4 Printable Document Container */}
+                  <div className="printable-doc bg-white rounded-3xl p-8 sm:p-12 border border-slate-200 shadow-lg text-slate-800 space-y-6">
+                    {/* Document Header */}
+                    <div className="flex items-start justify-between pb-6 border-b-2 border-purple-900">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-9 h-9 rounded-xl bg-purple-900 text-white flex items-center justify-center font-black text-base shadow-xs">
+                            PP
+                          </div>
+                          <div>
+                            <h2 className="font-black text-xl text-purple-950 tracking-tight">
+                              PEOPLE POINT CONSULTANTS
+                            </h2>
+                            <p className="text-[11px] text-purple-700 font-bold uppercase tracking-wider">
+                              Turn Ideas Into Running Businesses
+                            </p>
+                          </div>
+                        </div>
+                        <p className="text-[11px] text-slate-500 mt-2 max-w-sm leading-relaxed">
+                          Business Setup • HR Foundation • Cloud Payroll • Technology • Compliance • SOPs
+                          <br />
+                          {settings.address} | Phone: {settings.phone}
+                        </p>
+                      </div>
+
+                      <div className="text-right">
+                        <div className="text-xl font-black uppercase tracking-wider text-purple-900">
+                          COMMERCIAL QUOTATION
+                        </div>
+                        <div className="font-mono font-extrabold text-sm text-slate-900 mt-1">
+                          Ref: {selectedQuote.revisionCode}
+                        </div>
+                        <div className="text-xs text-slate-600 mt-1">
+                          <strong>Date:</strong> {selectedQuote.date}
+                        </div>
+                        <div className="text-xs text-slate-600">
+                          <strong>Valid Until:</strong> {selectedQuote.validUntil} (30 Days)
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Client & Place of Supply Block */}
+                    <div className="grid grid-cols-2 gap-6 bg-slate-50/80 p-4 rounded-2xl border border-slate-200/80 text-xs">
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                          PROPOSAL PREPARED FOR:
+                        </span>
+                        <div className="font-black text-sm text-slate-900 mt-0.5">
+                          {selectedQuote.companyName}
+                        </div>
+                        <div className="text-slate-700 mt-0.5 font-medium">
+                          Attn: {selectedQuote.clientName}
+                        </div>
+                        <div className="text-slate-500 text-[11px] mt-0.5 leading-snug">
+                          {selectedQuote.address}
+                        </div>
+                        {selectedQuote.gstin && (
+                          <div className="text-[11px] font-mono mt-1 text-slate-700">
+                            <strong>GSTIN:</strong> {selectedQuote.gstin}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="space-y-1 text-right">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                          ENGAGEMENT DETAILS:
+                        </span>
+                        <div><strong>Service Domain:</strong> {selectedQuote.serviceCategory}</div>
+                        <div><strong>Engagement Model:</strong> {selectedQuote.quoteType}</div>
+                        <div><strong>Place of Supply:</strong> {selectedQuote.placeOfSupply}</div>
+                        <div><strong>Prepared By:</strong> {selectedQuote.preparedBy}</div>
+                      </div>
+                    </div>
+
+                    {/* Subject Line */}
+                    <div className="text-xs font-bold text-slate-900 bg-purple-50/60 p-3 rounded-xl border border-purple-200/60">
+                      <strong>Subject:</strong> {selectedQuote.subject}
+                    </div>
+
+                    {/* Smart Scope Breakdown (Section 5) */}
+                    <div className="space-y-3">
+                      <h4 className="font-extrabold text-xs uppercase tracking-wider text-purple-950 pb-1 border-b border-purple-100">
+                        Detailed Scope of Work & Deliverables
+                      </h4>
+                      {selectedQuote.scopeSections.map((sec, idx) => (
+                        <div key={idx} className="space-y-1">
+                          <h5 className="font-bold text-xs text-slate-900">{sec.title}</h5>
+                          <ul className="list-disc pl-5 space-y-0.5 text-[11px] text-slate-700">
+                            {sec.items.map((item, i) => (
+                              <li key={i}>{item}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      ))}
+                    </div>
+
+                    {/* Commercial Line Items Table (Section 6) */}
+                    <div className="space-y-2">
+                      <h4 className="font-extrabold text-xs uppercase tracking-wider text-purple-950 pb-1 border-b border-purple-100">
+                        Commercial Pricing Schedule
+                      </h4>
+                      <table className="w-full text-xs text-left border-collapse">
+                        <thead>
+                          <tr className="bg-purple-900 text-white font-bold text-[11px]">
+                            <th className="p-2.5 rounded-l-lg">Description</th>
+                            <th className="p-2.5 text-center">Qty / Headcount</th>
+                            <th className="p-2.5 text-center">Unit</th>
+                            <th className="p-2.5 text-right">Rate (₹)</th>
+                            <th className="p-2.5 text-right rounded-r-lg">Total Amount (₹)</th>
+                          </tr>
+                        </thead>
+                        <tbody className="divide-y divide-slate-200">
+                          {selectedQuote.items.map((item, idx) => (
+                            <tr key={idx} className="hover:bg-slate-50">
+                              <td className="p-2.5 text-slate-800 leading-snug">
+                                <strong>{item.description}</strong>
+                                <span className="block text-[10px] text-slate-500 font-medium">
+                                  Billing Model: {item.billingFrequency}
+                                </span>
+                              </td>
+                              <td className="p-2.5 text-center font-bold">{item.quantity}</td>
+                              <td className="p-2.5 text-center text-slate-600">{item.unit}</td>
+                              <td className="p-2.5 text-right font-medium">
+                                ₹{item.rate.toLocaleString('en-IN')}
+                              </td>
+                              <td className="p-2.5 text-right font-bold text-slate-900">
+                                ₹{item.amount.toLocaleString('en-IN')}
+                              </td>
+                            </tr>
+                          ))}
+                        </tbody>
+                      </table>
+                    </div>
+
+                    {/* Totals & Financial Calculations */}
+                    <div className="flex justify-end pt-2">
+                      <div className="w-72 space-y-1.5 text-xs bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                        <div className="flex justify-between text-slate-600">
+                          <span>Subtotal:</span>
+                          <span className="font-bold">₹{quoteSubtotal.toLocaleString('en-IN')}</span>
+                        </div>
+                        {selectedQuote.discount > 0 && (
+                          <div className="flex justify-between text-rose-700 font-medium">
+                            <span>Courtesy Discount:</span>
+                            <span>-₹{selectedQuote.discount.toLocaleString('en-IN')}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between text-slate-600">
+                          <span>Net Taxable Value:</span>
+                          <span className="font-bold">₹{quoteNetAfterDiscount.toLocaleString('en-IN')}</span>
+                        </div>
+                        <div className="flex justify-between text-slate-600">
+                          <span>GST (Presently Exempt / Pre-Reg):</span>
+                          <span>{selectedQuote.taxRate > 0 ? `₹${quoteTaxAmount.toLocaleString('en-IN')}` : '₹0'}</span>
+                        </div>
+                        <div className="flex justify-between text-sm font-black text-purple-950 pt-2 border-t border-slate-200">
+                          <span>Total Quotation Value:</span>
+                          <span>₹{quoteTotalAmount.toLocaleString('en-IN')}</span>
+                        </div>
+                        {selectedQuote.annualIllustration && (
+                          <div className="pt-1.5 text-[10px] text-purple-800 font-semibold border-t border-purple-100">
+                            <strong>Annual Illustration:</strong> ₹{selectedQuote.annualIllustration.toLocaleString('en-IN')} / year
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Client Responsibilities & Scope Exclusions (Section 8) */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 text-[11px]">
+                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/80 space-y-1">
+                        <span className="font-bold text-slate-900 uppercase text-[10px]">
+                          Client Input Responsibilities:
+                        </span>
+                        <ul className="list-disc pl-4 space-y-0.5 text-slate-600">
+                          {selectedQuote.clientResponsibilities.slice(0, 3).map((r, i) => (
+                            <li key={i}>{r}</li>
+                          ))}
+                        </ul>
+                      </div>
+                      <div className="bg-slate-50 p-3 rounded-xl border border-slate-200/80 space-y-1">
+                        <span className="font-bold text-slate-900 uppercase text-[10px]">
+                          Scope Exclusions & Disclaimers:
+                        </span>
+                        <ul className="list-disc pl-4 space-y-0.5 text-slate-600">
+                          {selectedQuote.exclusions.slice(0, 2).map((ex, i) => (
+                            <li key={i}>{ex}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+
+                    {/* Payment Terms & Notes */}
+                    <div className="text-[11px] text-slate-600 space-y-1 pt-1">
+                      <div><strong>Commercial Payment Terms:</strong> {selectedQuote.paymentTerms}</div>
+                      <div><strong>Statutory Note:</strong> {selectedQuote.notes}</div>
+                    </div>
+
+                    {/* Bank Details & Authorised Signatory Footer */}
+                    <div className="pt-4 border-t-2 border-purple-900 flex items-end justify-between text-xs">
+                      <div className="space-y-0.5 text-[11px] text-slate-600">
+                        <div className="font-bold text-purple-950 text-xs uppercase tracking-wider">
+                          DIRECT BANK SETTLEMENT DETAILS:
+                        </div>
+                        <div><strong>Account Name:</strong> {settings.bankDetails.accountName}</div>
+                        <div><strong>Bank Name:</strong> {settings.bankDetails.bankName}</div>
+                        <div><strong>Account Number:</strong> {settings.bankDetails.accountNumber}</div>
+                        <div><strong>IFSC Code:</strong> {settings.bankDetails.ifsc}</div>
+                        <div><strong>Account Type:</strong> {settings.bankDetails.accountType}</div>
+                      </div>
+
+                      <div className="text-right space-y-8">
+                        <div className="text-xs font-bold text-purple-950">
+                          For PeoplePoint Consultants
+                        </div>
+                        <div>
+                          <div className="font-extrabold text-xs text-slate-900">
+                            {settings.signatoryName}
+                          </div>
+                          <div className="text-[10px] text-slate-500 font-medium">
+                            {settings.signatoryDesignation}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-white rounded-3xl p-12 text-center text-slate-400 border border-slate-200">
+                  Select a quotation from the left panel to inspect or print.
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* TAB 2: INVOICES MODULE (Sections 10, 11, 12, 13)            */}
+        {/* ========================================================= */}
+        {activeTab === 'invoices' && (
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+            {/* Left Column: Invoice Master & Recurring Generator */}
+            <div className="no-print lg:col-span-5 space-y-5">
+              <div className="bg-white rounded-2xl p-4 border border-slate-200 shadow-xs flex items-center justify-between">
+                <div>
+                  <h3 className="font-extrabold text-sm text-slate-900">Invoice Master</h3>
+                  <p className="text-xs text-slate-500">Tax invoices, retainers & payment reconciliation</p>
+                </div>
+                <button
+                  onClick={() => setShowRecurringModal(true)}
+                  className="py-2 px-3.5 rounded-xl bg-purple-900 hover:bg-purple-950 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs transition-colors"
+                >
+                  <RefreshCw className="w-3.5 h-3.5" />
+                  <span>Run Recurring Batch</span>
+                </button>
+              </div>
+
+              {/* Invoice List */}
+              <div className="space-y-2.5 max-h-[75vh] overflow-y-auto pr-1">
+                {invoices.map((inv) => {
+                  const isSelected = selectedInvoice?.id === inv.id;
+                  return (
+                    <div
+                      key={inv.id}
+                      onClick={() => setSelectedInvoice(inv)}
+                      className={`p-4 rounded-2xl border transition-all cursor-pointer ${
+                        isSelected
+                          ? 'bg-purple-50/70 border-purple-400 shadow-xs'
+                          : 'bg-white border-slate-200 hover:border-slate-300'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <div className="flex items-center gap-2">
+                            <span className="font-mono font-black text-xs text-purple-950">
+                              {inv.invoiceNumber}
+                            </span>
+                            <span
+                              className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${
+                                inv.status === 'Paid'
+                                  ? 'bg-emerald-100 text-emerald-800'
+                                  : inv.status === 'Partially Paid'
+                                  ? 'bg-blue-100 text-blue-800'
+                                  : inv.status === 'Issued'
+                                  ? 'bg-amber-100 text-amber-800'
+                                  : 'bg-rose-100 text-rose-800'
+                              }`}
+                            >
+                              {inv.status}
+                            </span>
+                          </div>
+                          <h4 className="font-bold text-xs text-slate-900 mt-1 line-clamp-1">
+                            {inv.companyName}
+                          </h4>
+                          <p className="text-[11px] text-slate-500 line-clamp-1">{inv.subject}</p>
+                        </div>
+
+                        <div className="text-right">
+                          <span className="font-black text-xs text-slate-900">
+                            ₹{inv.totalPayable.toLocaleString('en-IN')}
+                          </span>
+                          <div className="text-[10px] text-slate-400 mt-0.5">{inv.date}</div>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center justify-between pt-3 mt-3 border-t border-slate-100 text-[11px]">
+                        <span className="text-slate-500 font-medium">
+                          Period: {inv.billingPeriod} {inv.isRecurring && '• Retainer'}
+                        </span>
+                        <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+                          {inv.balanceDue > 0 && (
+                            <button
+                              onClick={() => {
+                                setPaymentForm({
+                                  invoiceId: inv.id,
+                                  amount: inv.balanceDue,
+                                  tdsDeducted: 0,
+                                  paymentDate: new Date().toISOString().split('T')[0],
+                                  paymentMode: 'NEFT / RTGS',
+                                  utrReference: '',
+                                  notes: `Settlement for ${inv.invoiceNumber}`
+                                });
+                                setShowPaymentModal(true);
+                              }}
+                              className="px-2.5 py-1 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[10px] flex items-center gap-1 shadow-2xs"
+                            >
+                              <CreditCard className="w-3 h-3" />
+                              <span>Record Payment</span>
+                            </button>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Right Column: Invoice A4 Preview (Section 13) */}
+            <div className="lg:col-span-7">
+              {selectedInvoice ? (
+                <div className="space-y-4">
+                  {/* Action Bar */}
+                  <div className="no-print bg-white p-3.5 rounded-2xl border border-slate-200 shadow-xs flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <span className="text-xs font-semibold text-slate-500">Status:</span>
+                      <span
+                        className={`text-xs font-bold px-2.5 py-1 rounded-xl ${
+                          selectedInvoice.status === 'Paid'
+                            ? 'bg-emerald-100 text-emerald-800'
+                            : 'bg-amber-100 text-amber-800'
+                        }`}
+                      >
+                        {selectedInvoice.status} (Balance: ₹{selectedInvoice.balanceDue.toLocaleString('en-IN')})
+                      </span>
+                    </div>
+
+                    <div className="flex items-center gap-2">
+                      {selectedInvoice.balanceDue > 0 && (
+                        <button
+                          onClick={() => {
+                            setPaymentForm({
+                              invoiceId: selectedInvoice.id,
+                              amount: selectedInvoice.balanceDue,
+                              tdsDeducted: 0,
+                              paymentDate: new Date().toISOString().split('T')[0],
+                              paymentMode: 'NEFT / RTGS',
+                              utrReference: '',
+                              notes: `Settlement for ${selectedInvoice.invoiceNumber}`
+                            });
+                            setShowPaymentModal(true);
+                          }}
+                          className="px-3.5 py-1.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs"
+                        >
+                          <CreditCard className="w-3.5 h-3.5" />
+                          <span>Record Receipt</span>
+                        </button>
+                      )}
+                      <button
+                        onClick={handlePrint}
+                        className="px-3.5 py-1.5 rounded-xl bg-purple-900 hover:bg-purple-950 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs"
+                      >
+                        <Printer className="w-3.5 h-3.5" />
+                        <span>Print Invoice</span>
+                      </button>
+                    </div>
+                  </div>
+
+                  {/* Clean 1-Page A4 Invoice Document */}
+                  <div className="printable-doc bg-white rounded-3xl p-8 sm:p-12 border border-slate-200 shadow-lg text-slate-800 space-y-6">
+                    {/* Invoice Header */}
+                    <div className="flex items-start justify-between pb-6 border-b-2 border-purple-900">
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <div className="w-9 h-9 rounded-xl bg-purple-900 text-white flex items-center justify-center font-black text-base shadow-xs">
+                            PP
+                          </div>
+                          <div>
+                            <h2 className="font-black text-xl text-purple-950 tracking-tight">
+                              PEOPLE POINT CONSULTANTS
+                            </h2>
+                            <p className="text-[11px] text-purple-700 font-bold uppercase tracking-wider">
+                              Turn Ideas Into Running Businesses
+                            </p>
+                          </div>
+                        </div>
+                        <p className="text-[11px] text-slate-500 mt-2 max-w-sm leading-relaxed">
+                          Corporate Setup • HR • Payroll & Compliance • Accounts • SOPs
+                          <br />
+                          {settings.address} | Phone: {settings.phone}
+                        </p>
+                      </div>
+
+                      <div className="text-right">
+                        <div className="text-2xl font-black uppercase tracking-wider text-purple-900">
+                          INVOICE
+                        </div>
+                        <div className="font-mono font-extrabold text-sm text-slate-900 mt-1">
+                          Invoice No: {selectedInvoice.invoiceNumber}
+                        </div>
+                        <div className="text-xs text-slate-600 mt-1">
+                          <strong>Date:</strong> {selectedInvoice.date}
+                        </div>
+                        <div className="text-xs text-slate-600">
+                          <strong>Payment Due:</strong> {selectedInvoice.dueDate}
+                        </div>
+                        {selectedInvoice.quotationRef && (
+                          <div className="text-xs text-purple-800 font-mono mt-0.5">
+                            <strong>Quote Ref:</strong> {selectedInvoice.quotationRef}
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Bill To Details */}
+                    <div className="grid grid-cols-2 gap-6 bg-slate-50/80 p-4 rounded-2xl border border-slate-200/80 text-xs">
+                      <div>
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                          BILLED TO:
+                        </span>
+                        <div className="font-black text-sm text-slate-900 mt-0.5">
+                          {selectedInvoice.companyName}
+                        </div>
+                        <div className="text-slate-700 mt-0.5 font-medium">
+                          Attn: {selectedInvoice.clientName}
+                        </div>
+                        <div className="text-slate-500 text-[11px] mt-0.5 leading-snug">
+                          {selectedInvoice.address}
+                        </div>
+                        {selectedInvoice.gstin && (
+                          <div className="text-[11px] font-mono mt-1 text-slate-700">
+                            <strong>GSTIN:</strong> {selectedInvoice.gstin}
+                          </div>
+                        )}
+                      </div>
+
+                      <div className="space-y-1 text-right">
+                        <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+                          INVOICE METADATA:
+                        </span>
+                        <div><strong>Billing Period:</strong> {selectedInvoice.billingPeriod}</div>
+                        <div><strong>Invoice Type:</strong> {selectedInvoice.invoiceType}</div>
+                        <div><strong>Place of Supply:</strong> {selectedInvoice.placeOfSupply}</div>
+                      </div>
+                    </div>
+
+                    {/* Subject */}
+                    <div className="text-xs font-bold text-slate-900 bg-purple-50/60 p-3 rounded-xl border border-purple-200/60">
+                      <strong>Subject:</strong> {selectedInvoice.subject}
+                    </div>
+
+                    {/* Itemized Table */}
+                    <table className="w-full text-xs text-left border-collapse">
+                      <thead>
+                        <tr className="bg-purple-900 text-white font-bold text-[11px]">
+                          <th className="p-2.5 rounded-l-lg">Description</th>
+                          <th className="p-2.5 text-center">Qty / Headcount</th>
+                          <th className="p-2.5 text-center">Unit</th>
+                          <th className="p-2.5 text-right">Rate (₹)</th>
+                          <th className="p-2.5 text-right rounded-r-lg">Amount (₹)</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-slate-200">
+                        {selectedInvoice.items.map((item, idx) => (
+                          <tr key={idx} className="hover:bg-slate-50">
+                            <td className="p-2.5 text-slate-800 leading-snug font-medium">
+                              {item.description}
+                            </td>
+                            <td className="p-2.5 text-center font-bold">{item.quantity}</td>
+                            <td className="p-2.5 text-center text-slate-600">{item.unit}</td>
+                            <td className="p-2.5 text-right font-medium">
+                              ₹{item.rate.toLocaleString('en-IN')}
+                            </td>
+                            <td className="p-2.5 text-right font-bold text-slate-900">
+                              ₹{item.amount.toLocaleString('en-IN')}
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+
+                    {/* Totals & Advance Breakdown */}
+                    <div className="flex justify-end pt-2">
+                      <div className="w-72 space-y-1.5 text-xs bg-slate-50 p-4 rounded-2xl border border-slate-200">
+                        <div className="flex justify-between text-slate-600">
+                          <span>Subtotal:</span>
+                          <span className="font-bold">₹{selectedInvoice.subtotal.toLocaleString('en-IN')}</span>
+                        </div>
+                        {selectedInvoice.discount > 0 && (
+                          <div className="flex justify-between text-rose-700 font-medium">
+                            <span>Courtesy Discount:</span>
+                            <span>-₹{selectedInvoice.discount.toLocaleString('en-IN')}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between text-slate-600">
+                          <span>Net Taxable Value:</span>
+                          <span className="font-bold">₹{selectedInvoice.netAfterDiscount.toLocaleString('en-IN')}</span>
+                        </div>
+                        <div className="flex justify-between text-slate-600">
+                          <span>GST (Presently Exempt):</span>
+                          <span>₹0</span>
+                        </div>
+                        <div className="flex justify-between text-sm font-black text-purple-950 pt-2 border-t border-slate-200">
+                          <span>Total Payable:</span>
+                          <span>₹{selectedInvoice.totalPayable.toLocaleString('en-IN')}</span>
+                        </div>
+                        {selectedInvoice.advancePaid > 0 && (
+                          <div className="flex justify-between text-emerald-700 font-bold">
+                            <span>Amount Received:</span>
+                            <span>₹{selectedInvoice.advancePaid.toLocaleString('en-IN')}</span>
+                          </div>
+                        )}
+                        <div className="flex justify-between text-xs font-black text-rose-800 pt-1 border-t border-slate-200">
+                          <span>Balance Due:</span>
+                          <span>₹{selectedInvoice.balanceDue.toLocaleString('en-IN')}</span>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* Notes & Terms */}
+                    <div className="text-[11px] text-slate-600 space-y-1">
+                      <div><strong>Payment Terms:</strong> {selectedInvoice.paymentTerms}</div>
+                      <div><strong>Statutory Note:</strong> {selectedInvoice.notes}</div>
+                    </div>
+
+                    {/* Bank Transfer Details & Signatory Block (Kept together on 1 page) */}
+                    <div className="pt-4 border-t-2 border-purple-900 flex items-end justify-between text-xs">
+                      <div className="space-y-0.5 text-[11px] text-slate-600">
+                        <div className="font-bold text-purple-950 text-xs uppercase tracking-wider">
+                          REMITTANCE BANK DETAILS:
+                        </div>
+                        <div><strong>Account Name:</strong> {settings.bankDetails.accountName}</div>
+                        <div><strong>Bank Name:</strong> {settings.bankDetails.bankName}</div>
+                        <div><strong>Account Number:</strong> {settings.bankDetails.accountNumber}</div>
+                        <div><strong>IFSC Code:</strong> {settings.bankDetails.ifsc}</div>
+                        <div><strong>Account Type:</strong> {settings.bankDetails.accountType}</div>
+                      </div>
+
+                      <div className="text-right space-y-8">
+                        <div className="text-xs font-bold text-purple-950">
+                          For PeoplePoint Consultants
+                        </div>
+                        <div>
+                          <div className="font-extrabold text-xs text-slate-900">
+                            {settings.signatoryName}
+                          </div>
+                          <div className="text-[10px] text-slate-500 font-medium">
+                            {settings.signatoryDesignation}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="bg-white rounded-3xl p-12 text-center text-slate-400 border border-slate-200">
+                  Select an invoice from the left panel to inspect or print.
+                </div>
+              )}
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* TAB 3: CLIENT MASTER MODULE (Section 3)                     */}
+        {/* ========================================================= */}
+        {activeTab === 'clients' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs flex items-center justify-between">
+              <div>
+                <h3 className="font-extrabold text-base text-slate-900">Client Master Directory</h3>
+                <p className="text-xs text-slate-500">Legal entity names, billing addresses, GSTIN, and default terms</p>
+              </div>
+              <button
+                onClick={() => setShowNewClientModal(true)}
+                className="py-2.5 px-4 rounded-xl bg-purple-900 hover:bg-purple-950 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                <span>Add Client Master</span>
+              </button>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {clients.map((client) => (
+                <div key={client.id} className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs space-y-3">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <span className="text-[10px] font-mono font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded">
+                        {client.id}
+                      </span>
+                      <h4 className="font-extrabold text-sm text-slate-900 mt-1.5">
+                        {client.legalName}
+                      </h4>
+                      {client.tradingName && client.tradingName !== client.legalName && (
+                        <p className="text-xs text-slate-500 font-medium">({client.tradingName})</p>
+                      )}
+                    </div>
+                  </div>
+
+                  <div className="space-y-1.5 text-xs text-slate-600 pt-1">
+                    <div><strong>Contact Person:</strong> {client.contactPerson}</div>
+                    <div><strong>Phone:</strong> {client.phone}</div>
+                    <div><strong>Email:</strong> {client.email}</div>
+                    <div><strong>Place of Supply:</strong> {client.placeOfSupply}</div>
+                    <div><strong>GSTIN:</strong> {client.gstin || 'Not Provided / Exempt'}</div>
+                    <div><strong>Default Terms:</strong> {client.defaultPaymentTerms}</div>
+                    <div><strong>Internal Owner:</strong> {client.internalOwner}</div>
+                  </div>
+
+                  <div className="pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+                    <button
+                      onClick={() => {
+                        handleCreateNewQuote();
+                        if (selectedQuote) {
+                          setSelectedQuote({
+                            ...selectedQuote,
+                            clientId: client.id,
+                            companyName: client.legalName,
+                            clientName: client.contactPerson,
+                            phone: client.phone,
+                            email: client.email,
+                            address: client.billingAddress,
+                            gstin: client.gstin || ''
+                          });
+                          setActiveTab('quotations');
+                        }
+                      }}
+                      className="text-purple-900 font-bold hover:underline flex items-center gap-1"
+                    >
+                      <span>Create Quotation</span>
+                      <ChevronRight className="w-3.5 h-3.5" />
+                    </button>
                   </div>
                 </div>
               ))}
             </div>
-
-            {/* Adjustments: Discount, GST, Advance */}
-            <div className="pt-3 border-t border-slate-200 space-y-3">
-              <div className="grid grid-cols-2 gap-3">
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">Discount (₹)</label>
-                  <input
-                    type="number"
-                    value={doc.discount}
-                    onChange={(e) => setDoc({ ...doc, discount: Number(e.target.value) || 0 })}
-                    className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200"
-                  />
-                </div>
-                <div>
-                  <label className="block text-[11px] font-bold text-slate-600 mb-1">GST Application</label>
-                  <select
-                    value={doc.taxType}
-                    onChange={(e) => {
-                      const t = e.target.value as 'none' | 'cgst_sgst' | 'igst';
-                      setDoc({ ...doc, taxType: t, taxRate: t === 'none' ? 0 : 18 });
-                    }}
-                    className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200 bg-white"
-                  >
-                    <option value="none">Exempt / Pre-Registration (0%)</option>
-                    <option value="cgst_sgst">CGST 9% + SGST 9% (18%)</option>
-                    <option value="igst">IGST (18%)</option>
-                  </select>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Advance Amount Payable Now (₹)</label>
-                <input
-                  type="number"
-                  value={doc.advancePaid}
-                  onChange={(e) => setDoc({ ...doc, advancePaid: Number(e.target.value) || 0 })}
-                  className="w-full text-xs px-3 py-2 rounded-xl border border-slate-200"
-                />
-              </div>
-
-              <div>
-                <label className="block text-[11px] font-bold text-slate-600 mb-1">Payment Terms & Schedule</label>
-                <textarea
-                  rows={2}
-                  value={doc.paymentTerms}
-                  onChange={(e) => setDoc({ ...doc, paymentTerms: e.target.value })}
-                  className="w-full text-xs p-2 rounded-xl border border-slate-200"
-                />
-              </div>
-            </div>
           </div>
-        </div>
+        )}
 
-        {/* RIGHT COLUMN: Authentic A4 Preview / Printable Area */}
-        <div className="lg:col-span-7">
-          <div className="sticky top-20">
-            {/* Desktop QMS Status Banner */}
-            <div className="no-print mb-4 p-3 rounded-xl bg-purple-900 text-white text-xs flex items-center justify-between shadow-xs">
-              <div className="flex items-center gap-2">
-                <Layers className="w-4 h-4 text-brand-pink" />
-                <span>
-                  <strong>QMS Desktop Sync:</strong> Output is calibrated for direct parity with{' '}
-                  <code>D:\Quote Create</code> QMS.
-                </span>
+        {/* ========================================================= */}
+        {/* TAB 4 & 5: PAYMENTS & RECEIPTS (Section 14)                 */}
+        {/* ========================================================= */}
+        {(activeTab === 'payments' || activeTab === 'receipts') && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs flex items-center justify-between">
+              <div>
+                <h3 className="font-extrabold text-base text-slate-900">
+                  {activeTab === 'receipts' ? 'Payment Receipts & Slips' : 'Payment Tracking'}
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Bank UTR tracking, TDS reconciliations and official branded client receipts
+                </p>
               </div>
               <button
-                onClick={handlePrint}
-                className="underline hover:text-brand-pink font-semibold shrink-0 ml-2"
+                onClick={() => setShowPaymentModal(true)}
+                className="py-2.5 px-4 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs transition-colors"
               >
-                Print Preview
+                <CreditCard className="w-4 h-4" />
+                <span>Record New Payment</span>
               </button>
             </div>
 
-            {/* A4 PAPER CONTAINER */}
-            <div
-              id="printable-document"
-              className="printable-doc bg-white rounded-2xl border border-slate-200 shadow-xl p-8 sm:p-12 text-slate-900 min-h-[900px] flex flex-col justify-between"
-            >
-              {/* DOCUMENT CONTENT */}
-              <div className="space-y-6">
-                {/* Header with Logo and Company Info */}
-                <div className="flex flex-row justify-between items-start border-b-2 border-purple-900 pb-6 gap-4">
-                  <div>
-                    <div className="flex items-center gap-2 mb-1">
-                      <div className="w-9 h-9 rounded-xl bg-purple-950 text-white flex items-center justify-center font-black text-lg">
-                        P
+            <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+              <div className="lg:col-span-5 space-y-3">
+                {payments.map((p) => {
+                  const isSelected = selectedReceipt?.id === p.id;
+                  return (
+                    <div
+                      key={p.id}
+                      onClick={() => setSelectedReceipt(p)}
+                      className={`p-4 rounded-2xl border transition-all cursor-pointer ${
+                        isSelected
+                          ? 'bg-emerald-50/70 border-emerald-400 shadow-xs'
+                          : 'bg-white border-slate-200 hover:border-slate-300'
+                      }`}
+                    >
+                      <div className="flex items-start justify-between">
+                        <div>
+                          <span className="font-mono font-black text-xs text-emerald-900">
+                            {p.receiptNumber}
+                          </span>
+                          <h4 className="font-bold text-xs text-slate-900 mt-1 line-clamp-1">
+                            {p.companyName}
+                          </h4>
+                          <div className="text-[11px] text-slate-500">
+                            Ref Invoice: {p.invoiceNumber} • {p.paymentMode}
+                          </div>
+                        </div>
+
+                        <div className="text-right">
+                          <span className="font-black text-sm text-emerald-700">
+                            ₹{p.amount.toLocaleString('en-IN')}
+                          </span>
+                          <div className="text-[10px] text-slate-400 mt-0.5">{p.paymentDate}</div>
+                        </div>
+                      </div>
+                      <div className="mt-2 text-[11px] text-slate-600 font-mono">
+                        UTR: {p.utrReference || 'Direct Transfer'}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              <div className="lg:col-span-7">
+                {selectedReceipt ? (
+                  <div className="printable-doc bg-white rounded-3xl p-8 sm:p-10 border border-slate-200 shadow-md space-y-6">
+                    <div className="flex items-start justify-between pb-4 border-b-2 border-emerald-700">
+                      <div>
+                        <div className="font-black text-lg text-purple-950">PEOPLE POINT CONSULTANTS</div>
+                        <div className="text-[11px] text-emerald-800 font-bold uppercase">Official Payment Receipt</div>
+                        <div className="text-xs text-slate-500">{settings.address} | Phone: {settings.phone}</div>
+                      </div>
+                      <div className="text-right">
+                        <div className="font-mono font-black text-base text-emerald-800">
+                          {selectedReceipt.receiptNumber}
+                        </div>
+                        <div className="text-xs text-slate-600">Date: {selectedReceipt.paymentDate}</div>
+                      </div>
+                    </div>
+
+                    <div className="p-4 bg-emerald-50/60 rounded-2xl border border-emerald-200/60 space-y-2 text-xs">
+                      <div>
+                        Received with thanks from: <strong>{selectedReceipt.companyName}</strong> ({selectedReceipt.clientName})
                       </div>
                       <div>
-                        <h2 className="text-xl font-black tracking-tight text-slate-900">
-                          PeoplePoint Consultants
-                        </h2>
-                        <p className="text-[10px] font-bold uppercase tracking-wider text-purple-800">
-                          Turn Ideas Into Running Businesses
-                        </p>
+                        Amount Received: <strong className="text-emerald-800 text-sm">₹{selectedReceipt.amount.toLocaleString('en-IN')}</strong>
+                      </div>
+                      <div>
+                        Payment Mode: <strong>{selectedReceipt.paymentMode}</strong> | UTR: <strong>{selectedReceipt.utrReference}</strong>
+                      </div>
+                      <div>
+                        Towards Invoice: <strong>{selectedReceipt.invoiceNumber}</strong>
                       </div>
                     </div>
-                    <div className="text-[11px] text-slate-600 space-y-0.5 mt-2">
-                      <p>Corporate Setup • HR • Payroll • Tech • Compliance</p>
-                      <p>Chennai, Tamil Nadu, India</p>
-                      <p>
-                        Phone: +91 88073 04713 • Email: peoplepointconsultant@gmail.com
-                      </p>
+
+                    <div className="pt-6 border-t border-slate-200 flex justify-between items-end text-xs">
+                      <div className="text-[11px] text-slate-500">
+                        This is a computer-generated official receipt.
+                      </div>
+                      <div className="text-right">
+                        <div className="font-bold text-slate-900">{settings.signatoryName}</div>
+                        <div className="text-[10px] text-slate-500">{settings.signatoryDesignation}</div>
+                      </div>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="bg-white rounded-3xl p-12 text-center text-slate-400 border border-slate-200">
+                    Select a payment from the left to view or print the receipt.
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* TAB 6: RATE CARDS MODULE (Section 2 & 16)                   */}
+        {/* ========================================================= */}
+        {activeTab === 'rate_cards' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs flex items-center justify-between">
+              <div>
+                <h3 className="font-extrabold text-base text-slate-900">Approved Commercial Rate Cards</h3>
+                <p className="text-xs text-slate-500">Standard and minimum rates by service discipline</p>
+              </div>
+              <span className="text-xs font-semibold text-purple-900 bg-purple-100 px-3 py-1 rounded-xl">
+                Rate Governance: Admin Protected
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              {SEED_RATE_CARDS.map((rc) => (
+                <div key={rc.id} className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs space-y-3">
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <span className="text-[10px] font-bold text-purple-700 bg-purple-50 px-2 py-0.5 rounded">
+                        {rc.serviceCategory}
+                      </span>
+                      <h4 className="font-black text-sm text-slate-900 mt-1">{rc.packageName}</h4>
+                    </div>
+                    <div className="text-right">
+                      <div className="font-black text-base text-purple-950">
+                        ₹{rc.standardRate.toLocaleString('en-IN')}
+                      </div>
+                      <div className="text-[10px] text-slate-400 font-medium">/{rc.defaultUnit}</div>
                     </div>
                   </div>
 
-                  <div className="text-right">
-                    <span className="inline-block px-3 py-1 rounded-lg bg-purple-900 text-white text-xs font-black uppercase tracking-wider mb-2">
-                      {doc.type === 'invoice' ? 'TAX INVOICE' : 'COMMERCIAL QUOTATION'}
-                    </span>
-                    <div className="text-xs space-y-1">
-                      <p>
-                        <strong className="text-slate-700">Ref No:</strong>{' '}
-                        <span className="font-mono font-bold text-slate-900">{doc.docNumber}</span>
-                      </p>
-                      <p>
-                        <strong className="text-slate-700">Date:</strong> {doc.date}
-                      </p>
-                      <p>
-                        <strong className="text-slate-700">
-                          {doc.type === 'invoice' ? 'Due Date:' : 'Valid Until:'}
-                        </strong>{' '}
-                        {doc.validityDate}
-                      </p>
-                    </div>
-                  </div>
-                </div>
+                  <p className="text-xs text-slate-600 leading-snug">{rc.description}</p>
 
-                {/* Client / Bill To Block */}
-                <div className="grid grid-cols-2 gap-6 p-4 rounded-xl bg-slate-50 border border-slate-200 text-xs">
-                  <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
-                      {doc.type === 'invoice' ? 'Bill To:' : 'Quotation Prepared For:'}
-                    </span>
-                    <h3 className="font-black text-sm text-slate-900">{doc.companyName}</h3>
-                    <p className="text-slate-700 font-semibold">{doc.clientName}</p>
-                    <p className="text-slate-600">{doc.address}</p>
-                    {doc.phone && <p className="text-slate-600">Phone: {doc.phone}</p>}
-                    {doc.email && <p className="text-slate-600">Email: {doc.email}</p>}
-                    {doc.gstin && <p className="text-slate-600">GSTIN: {doc.gstin}</p>}
-                  </div>
-
-                  <div>
-                    <span className="text-[10px] font-bold uppercase tracking-wider text-slate-400 block mb-1">
-                      Subject / Engagement:
-                    </span>
-                    <p className="font-bold text-slate-900 text-xs leading-snug">{doc.subject}</p>
-                    <p className="text-[11px] text-slate-500 mt-2">
-                      Issued under People Point Professional Services framework. Direct partner-assigned execution.
-                    </p>
-                  </div>
-                </div>
-
-                {/* Scope Breakdown (Especially prominent for quotations) */}
-                {doc.scopeItems && doc.scopeItems.length > 0 && (
-                  <div className="space-y-1.5">
-                    <h4 className="text-xs font-black uppercase tracking-wider text-purple-900">
-                      Scope of Services & Deliverables:
-                    </h4>
-                    <ul className="space-y-1 text-xs text-slate-700 bg-slate-50/50 p-3 rounded-xl border border-slate-100">
-                      {doc.scopeItems.map((scope, idx) => (
-                        <li key={idx} className="flex items-start gap-2">
-                          <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 mt-0.5 shrink-0" />
-                          <span className="leading-snug">{scope}</span>
-                        </li>
+                  <div className="pt-2 border-t border-slate-100 space-y-1">
+                    <span className="text-[10px] font-bold text-slate-400 uppercase">Core Inclusions:</span>
+                    <ul className="list-disc pl-4 text-[11px] text-slate-600 space-y-0.5">
+                      {rc.scopePreview.map((item, i) => (
+                        <li key={i}>{item}</li>
                       ))}
                     </ul>
                   </div>
-                )}
 
-                {/* Line Items Table */}
-                <div className="overflow-hidden rounded-xl border border-slate-200">
-                  <table className="w-full text-left text-xs border-collapse">
-                    <thead>
-                      <tr className="bg-purple-950 text-white font-bold text-[11px]">
-                        <th className="py-2.5 px-3 w-12 text-center">#</th>
-                        <th className="py-2.5 px-3">Service Particulars</th>
-                        <th className="py-2.5 px-3 w-16 text-center">Qty</th>
-                        <th className="py-2.5 px-3 w-20 text-center">Unit</th>
-                        <th className="py-2.5 px-3 w-24 text-right">Rate (₹)</th>
-                        <th className="py-2.5 px-3 w-28 text-right">Amount (₹)</th>
-                      </tr>
-                    </thead>
-                    <tbody className="divide-y divide-slate-200">
-                      {doc.items.map((item, idx) => (
-                        <tr key={idx} className="hover:bg-slate-50/50">
-                          <td className="py-2.5 px-3 text-center text-slate-400 font-bold">{idx + 1}</td>
-                          <td className="py-2.5 px-3 text-slate-800 font-medium leading-snug">
-                            {item.description}
-                          </td>
-                          <td className="py-2.5 px-3 text-center text-slate-600">{item.quantity}</td>
-                          <td className="py-2.5 px-3 text-center text-slate-500 text-[11px]">{item.unit}</td>
-                          <td className="py-2.5 px-3 text-right text-slate-700 font-mono">
-                            ₹{Number(item.rate).toLocaleString('en-IN')}
-                          </td>
-                          <td className="py-2.5 px-3 text-right text-slate-900 font-bold font-mono">
-                            ₹{Number(item.amount).toLocaleString('en-IN')}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-
-                {/* Calculation Summary Block */}
-                <div className="flex justify-end pt-2">
-                  <div className="w-72 space-y-1.5 text-xs text-slate-700">
-                    <div className="flex justify-between py-1 border-b border-slate-100">
-                      <span>Subtotal:</span>
-                      <span className="font-mono font-semibold">₹{subtotal.toLocaleString('en-IN')}</span>
-                    </div>
-
-                    {doc.discount > 0 && (
-                      <div className="flex justify-between py-1 text-emerald-700 border-b border-slate-100">
-                        <span>Discount:</span>
-                        <span className="font-mono font-semibold">–₹{doc.discount.toLocaleString('en-IN')}</span>
-                      </div>
-                    )}
-
-                    <div className="flex justify-between py-1 border-b border-slate-100">
-                      <span>Net Taxable Value:</span>
-                      <span className="font-mono font-semibold">₹{netAfterDiscount.toLocaleString('en-IN')}</span>
-                    </div>
-
-                    <div className="flex justify-between py-1 text-[11px] text-slate-500 border-b border-slate-100">
-                      <span>
-                        GST ({doc.taxType === 'none' ? 'Not Applicable / Pre-Reg' : `${doc.taxRate}%`}):
-                      </span>
-                      <span className="font-mono">
-                        {doc.taxType === 'none' ? '–' : `₹${taxAmount.toLocaleString('en-IN')}`}
-                      </span>
-                    </div>
-
-                    <div className="flex justify-between py-2 text-sm font-black text-slate-900 border-b-2 border-purple-900">
-                      <span>Total Amount:</span>
-                      <span className="font-mono text-purple-900">₹{totalPayable.toLocaleString('en-IN')}</span>
-                    </div>
-
-                    {doc.advancePaid > 0 && (
-                      <>
-                        <div className="flex justify-between py-1 text-xs font-bold text-emerald-800 bg-emerald-50 px-2 rounded">
-                          <span>Advance Payable Now:</span>
-                          <span className="font-mono">₹{doc.advancePaid.toLocaleString('en-IN')}</span>
-                        </div>
-                        <div className="flex justify-between py-1 text-xs font-bold text-slate-800 bg-slate-100 px-2 rounded">
-                          <span>Balance on Completion:</span>
-                          <span className="font-mono">₹{balanceDue.toLocaleString('en-IN')}</span>
-                        </div>
-                      </>
-                    )}
+                  <div className="pt-2 flex justify-between items-center text-[11px] text-slate-500">
+                    <span>Floor / Min Rate: ₹{rc.minRate.toLocaleString('en-IN')}</span>
+                    <span className="font-bold text-purple-800">{rc.billingModel}</span>
                   </div>
                 </div>
+              ))}
+            </div>
+          </div>
+        )}
 
-                {/* Terms and Bank Account Details (Authentic People Point Account) */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-4 border-t border-slate-200 text-xs">
-                  <div className="space-y-2">
-                    <h5 className="font-bold text-slate-900 text-[11px] uppercase tracking-wider">
-                      Payment Terms & Scope Notes
-                    </h5>
-                    <p className="text-[11px] text-slate-600 leading-relaxed bg-slate-50 p-2.5 rounded-lg border border-slate-200">
-                      {doc.paymentTerms}
-                    </p>
-                    <p className="text-[10px] text-slate-400 italic">
-                      {doc.notes}
-                    </p>
+        {/* ========================================================= */}
+        {/* TAB 7: TEMPLATES MODULE (Section 5)                         */}
+        {/* ========================================================= */}
+        {activeTab === 'templates' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs flex items-center justify-between">
+              <div>
+                <h3 className="font-extrabold text-base text-slate-900">Smart Scope Templates</h3>
+                <p className="text-xs text-slate-500">Pre-approved scope modules for payroll, HR, and setup proposals</p>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-3">
+                <h4 className="font-black text-sm text-purple-950 flex items-center gap-2">
+                  <Briefcase className="w-4 h-4 text-purple-800" />
+                  <span>One-Time Payroll Setup & Review Template</span>
+                </h4>
+                <p className="text-xs text-slate-500">Standard scope loaded for all setup engagements:</p>
+                <ul className="list-disc pl-5 space-y-1.5 text-xs text-slate-700">
+                  {PAYROLL_SCOPE_TEMPLATES.setupAndReview.map((it, idx) => (
+                    <li key={idx}>{it}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-3">
+                <h4 className="font-black text-sm text-purple-950 flex items-center gap-2">
+                  <Clock className="w-4 h-4 text-purple-800" />
+                  <span>Monthly Payroll & Compliance Retainer Template</span>
+                </h4>
+                <p className="text-xs text-slate-500">Standard monthly operations deliverables:</p>
+                <ul className="list-disc pl-5 space-y-1.5 text-xs text-slate-700">
+                  {PAYROLL_SCOPE_TEMPLATES.monthlyPayroll.map((it, idx) => (
+                    <li key={idx}>{it}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-3">
+                <h4 className="font-black text-sm text-purple-950 flex items-center gap-2">
+                  <Users className="w-4 h-4 text-purple-800" />
+                  <span>Client Responsibilities & Input Milestones</span>
+                </h4>
+                <p className="text-xs text-slate-500">Mandatory inputs required from client management:</p>
+                <ul className="list-disc pl-5 space-y-1.5 text-xs text-slate-700">
+                  {PAYROLL_SCOPE_TEMPLATES.clientResponsibilities.map((it, idx) => (
+                    <li key={idx}>{it}</li>
+                  ))}
+                </ul>
+              </div>
+
+              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-3">
+                <h4 className="font-black text-sm text-purple-950 flex items-center gap-2">
+                  <ShieldAlert className="w-4 h-4 text-purple-800" />
+                  <span>Standard Scope Exclusions & Statutory Disclaimers</span>
+                </h4>
+                <p className="text-xs text-slate-500">Protective legal disclaimers:</p>
+                <ul className="list-disc pl-5 space-y-1.5 text-xs text-slate-700">
+                  {PAYROLL_SCOPE_TEMPLATES.exclusions.map((it, idx) => (
+                    <li key={idx}>{it}</li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* TAB 8: REPORTS & DASHBOARD MODULE (Section 15)              */}
+        {/* ========================================================= */}
+        {activeTab === 'reports' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs flex items-center justify-between">
+              <div>
+                <h3 className="font-extrabold text-base text-slate-900">Executive Revenue & Pipeline Dashboard</h3>
+                <p className="text-xs text-slate-500">Real-time commercial metrics, conversion ratios, and receivables</p>
+              </div>
+            </div>
+
+            {/* KPI Metric Cards */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs space-y-2">
+                <div className="flex items-center justify-between text-xs text-slate-500 font-bold uppercase tracking-wider">
+                  <span>Quotes This Month</span>
+                  <BarChart3 className="w-4 h-4 text-purple-800" />
+                </div>
+                <div className="text-2xl font-black text-slate-900">{reportMetrics.quotesThisMonth}</div>
+                <div className="text-xs text-emerald-700 font-semibold flex items-center gap-1">
+                  <span>{reportMetrics.quotesAccepted} accepted</span>
+                  <span>({reportMetrics.conversionRate}% conversion)</span>
+                </div>
+              </div>
+
+              <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs space-y-2">
+                <div className="flex items-center justify-between text-xs text-slate-500 font-bold uppercase tracking-wider">
+                  <span>Quoted Pipeline</span>
+                  <TrendingUp className="w-4 h-4 text-purple-800" />
+                </div>
+                <div className="text-2xl font-black text-purple-950">
+                  ₹{reportMetrics.totalQuotedValue.toLocaleString('en-IN')}
+                </div>
+                <div className="text-xs text-slate-500">Across {quotations.length} total proposals</div>
+              </div>
+
+              <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs space-y-2">
+                <div className="flex items-center justify-between text-xs text-slate-500 font-bold uppercase tracking-wider">
+                  <span>Invoiced Value</span>
+                  <DollarSign className="w-4 h-4 text-purple-800" />
+                </div>
+                <div className="text-2xl font-black text-slate-900">
+                  ₹{reportMetrics.totalInvoicedValue.toLocaleString('en-IN')}
+                </div>
+                <div className="text-xs text-emerald-700 font-semibold">
+                  Collected: ₹{reportMetrics.totalCollected.toLocaleString('en-IN')}
+                </div>
+              </div>
+
+              <div className="bg-white p-5 rounded-3xl border border-slate-200 shadow-xs space-y-2">
+                <div className="flex items-center justify-between text-xs text-slate-500 font-bold uppercase tracking-wider">
+                  <span>Monthly Retainer MRR</span>
+                  <RefreshCw className="w-4 h-4 text-purple-800" />
+                </div>
+                <div className="text-2xl font-black text-emerald-700">
+                  ₹{reportMetrics.recurringMRR.toLocaleString('en-IN')}
+                </div>
+                <div className="text-xs text-slate-500">Predictable monthly run rate</div>
+              </div>
+            </div>
+
+            {/* Receivables & Balance Overview */}
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
+                <h4 className="font-black text-sm text-slate-900">Receivables & Collections Breakdown</h4>
+                <div className="space-y-3 text-xs">
+                  <div className="flex justify-between py-2 border-b border-slate-100">
+                    <span className="text-slate-600">Total Billed:</span>
+                    <span className="font-bold">₹{reportMetrics.totalInvoicedValue.toLocaleString('en-IN')}</span>
                   </div>
-
-                  <div className="space-y-1.5 p-3 rounded-xl bg-purple-50/70 border border-purple-100 text-purple-950">
-                    <h5 className="font-black text-[11px] uppercase tracking-wider text-purple-900 flex items-center gap-1">
-                      <CreditCard className="w-3.5 h-3.5" />
-                      <span>Bank Transfer Details</span>
-                    </h5>
-                    <div className="text-[11px] space-y-0.5 leading-snug">
-                      <p>
-                        <strong className="text-purple-900">Account Name:</strong> {doc.bankDetails.accountName}
-                      </p>
-                      <p>
-                        <strong className="text-purple-900">Bank:</strong> {doc.bankDetails.bankName}
-                      </p>
-                      <p>
-                        <strong className="text-purple-900">Account No:</strong>{' '}
-                        <span className="font-mono font-bold">{doc.bankDetails.accountNumber}</span>
-                      </p>
-                      <p>
-                        <strong className="text-purple-900">IFSC Code:</strong>{' '}
-                        <span className="font-mono font-bold">{doc.bankDetails.ifsc}</span>
-                      </p>
-                      <p>
-                        <strong className="text-purple-900">Account Type:</strong> {doc.bankDetails.accountType}
-                      </p>
-                    </div>
+                  <div className="flex justify-between py-2 border-b border-slate-100 text-emerald-700 font-bold">
+                    <span>Total Realized (Bank Receipts):</span>
+                    <span>₹{reportMetrics.totalCollected.toLocaleString('en-IN')}</span>
+                  </div>
+                  <div className="flex justify-between py-2 border-b border-slate-100 text-amber-700 font-bold">
+                    <span>Total Outstanding:</span>
+                    <span>₹{reportMetrics.totalOutstanding.toLocaleString('en-IN')}</span>
+                  </div>
+                  <div className="flex justify-between py-2 text-rose-700 font-black">
+                    <span>Total Overdue:</span>
+                    <span>₹{reportMetrics.totalOverdue.toLocaleString('en-IN')}</span>
                   </div>
                 </div>
               </div>
 
-              {/* Signatory Footer */}
-              <div className="pt-8 mt-8 border-t border-slate-200 flex justify-between items-end text-xs">
-                <div className="text-[10px] text-slate-400 max-w-xs">
-                  This document is formally generated by People Point Consultants Administrative Billing System.
-                </div>
-                <div className="text-right space-y-8">
-                  <span className="font-bold text-slate-800 text-[11px] block">For PeoplePoint Consultants</span>
-                  <div className="pt-4 border-t border-slate-400 font-semibold text-slate-900 text-xs">
-                    Authorised Signatory
-                  </div>
+              <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4">
+                <h4 className="font-black text-sm text-slate-900">Active Retainer Clients</h4>
+                <div className="space-y-2.5 max-h-56 overflow-y-auto">
+                  {invoices
+                    .filter((i) => i.isRecurring)
+                    .map((r, i) => (
+                      <div key={i} className="flex items-center justify-between p-3 rounded-xl bg-slate-50 text-xs">
+                        <div>
+                          <div className="font-bold text-slate-900">{r.companyName}</div>
+                          <div className="text-slate-500 text-[11px]">
+                            {r.recurringHeadcount} employees @ ₹{r.recurringPerEmpRate}/mo
+                          </div>
+                        </div>
+                        <div className="font-black text-purple-950">
+                          ₹{((r.recurringHeadcount || 15) * (r.recurringPerEmpRate || 100)).toLocaleString('en-IN')}/mo
+                        </div>
+                      </div>
+                    ))}
                 </div>
               </div>
             </div>
           </div>
-        </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* TAB 9: SETTINGS MODULE (Section 7, 8, 13)                   */}
+        {/* ========================================================= */}
+        {activeTab === 'settings' && (
+          <div className="max-w-3xl space-y-6">
+            <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs">
+              <h3 className="font-extrabold text-base text-slate-900">Organization & Tax Settings</h3>
+              <p className="text-xs text-slate-500">Configure bank accounts, tax rules, and document numbering</p>
+            </div>
+
+            <div className="bg-white p-6 rounded-3xl border border-slate-200 shadow-xs space-y-4 text-xs">
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Organization Name</label>
+                  <input
+                    type="text"
+                    value={settings.orgName}
+                    onChange={(e) => setSettings({ ...settings, orgName: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Brand Tagline</label>
+                  <input
+                    type="text"
+                    value={settings.brandTagline}
+                    onChange={(e) => setSettings({ ...settings, brandTagline: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">Non-Tax Exemption Disclaimer</label>
+                <textarea
+                  rows={2}
+                  value={settings.nonTaxMessage}
+                  onChange={(e) => setSettings({ ...settings, nonTaxMessage: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 text-xs"
+                />
+              </div>
+
+              <div className="pt-3 border-t border-slate-100 space-y-3">
+                <h4 className="font-bold text-purple-950">Primary Bank Settlement Account</h4>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <label className="font-bold text-slate-600 block mb-1">Account Name</label>
+                    <input
+                      type="text"
+                      value={settings.bankDetails.accountName}
+                      onChange={(e) =>
+                        setSettings({
+                          ...settings,
+                          bankDetails: { ...settings.bankDetails, accountName: e.target.value }
+                        })
+                      }
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-bold text-slate-600 block mb-1">Bank & Branch</label>
+                    <input
+                      type="text"
+                      value={settings.bankDetails.bankName}
+                      onChange={(e) =>
+                        setSettings({
+                          ...settings,
+                          bankDetails: { ...settings.bankDetails, bankName: e.target.value }
+                        })
+                      }
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-bold text-slate-600 block mb-1">Account Number</label>
+                    <input
+                      type="text"
+                      value={settings.bankDetails.accountNumber}
+                      onChange={(e) =>
+                        setSettings({
+                          ...settings,
+                          bankDetails: { ...settings.bankDetails, accountNumber: e.target.value }
+                        })
+                      }
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 font-mono"
+                    />
+                  </div>
+                  <div>
+                    <label className="font-bold text-slate-600 block mb-1">IFSC Code</label>
+                    <input
+                      type="text"
+                      value={settings.bankDetails.ifsc}
+                      onChange={(e) =>
+                        setSettings({
+                          ...settings,
+                          bankDetails: { ...settings.bankDetails, ifsc: e.target.value }
+                        })
+                      }
+                      className="w-full px-3 py-2 rounded-xl border border-slate-200 font-mono"
+                    />
+                  </div>
+                </div>
+              </div>
+
+              <button
+                onClick={() => {
+                  saveSettings(settings);
+                  logAuditEvent(currentUser, currentRole, 'UPDATE_SETTINGS', 'Settings', 'ORG-CONFIG', 'Updated organization settings.');
+                  showToast('Organization settings updated successfully.');
+                }}
+                className="py-2.5 px-5 rounded-xl bg-purple-900 hover:bg-purple-950 text-white font-bold text-xs"
+              >
+                Save Settings
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* ========================================================= */}
+        {/* TAB 10: AUDIT TRAIL MODULE (Section 16)                     */}
+        {/* ========================================================= */}
+        {activeTab === 'audit' && (
+          <div className="space-y-6">
+            <div className="bg-white rounded-2xl p-5 border border-slate-200 shadow-xs flex items-center justify-between">
+              <div>
+                <h3 className="font-extrabold text-base text-slate-900">Security & Operational Audit Log</h3>
+                <p className="text-xs text-slate-500">Immutable record of quote creation, price edits, and approvals</p>
+              </div>
+            </div>
+
+            <div className="bg-white rounded-3xl border border-slate-200 shadow-xs overflow-hidden">
+              <table className="w-full text-xs text-left">
+                <thead className="bg-slate-50 border-b border-slate-200 text-slate-500 uppercase text-[10px] font-bold">
+                  <tr>
+                    <th className="p-3">Timestamp</th>
+                    <th className="p-3">User & Role</th>
+                    <th className="p-3">Action</th>
+                    <th className="p-3">Entity</th>
+                    <th className="p-3">Details</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-100">
+                  {auditLogs.map((log) => (
+                    <tr key={log.id} className="hover:bg-slate-50/80">
+                      <td className="p-3 text-slate-400 font-mono text-[11px]">
+                        {new Date(log.timestamp).toLocaleString()}
+                      </td>
+                      <td className="p-3">
+                        <div className="font-bold text-slate-900">{log.user}</div>
+                        <span className="text-[10px] text-purple-800 bg-purple-50 px-1.5 py-0.2 rounded font-semibold">
+                          {log.role}
+                        </span>
+                      </td>
+                      <td className="p-3 font-mono font-bold text-xs text-purple-950">{log.action}</td>
+                      <td className="p-3 font-medium text-slate-700">
+                        {log.entityType}: {log.entityId}
+                      </td>
+                      <td className="p-3 text-slate-600 max-w-md leading-snug">{log.details}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        )}
       </div>
+
+      {/* ========================================================= */}
+      {/* MODAL: ADD CLIENT MASTER (Section 3)                      */}
+      {/* ========================================================= */}
+      {showNewClientModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <h3 className="font-black text-sm text-slate-900">Add New Client Master</h3>
+              <button onClick={() => setShowNewClientModal(false)} className="text-slate-400 hover:text-slate-600">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <form onSubmit={handleSaveNewClient} className="space-y-3 text-xs">
+              <div>
+                <label className="font-bold block mb-1">Company / Legal Entity Name *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. Acme Industrial Engineering Private Limited"
+                  value={newClientForm.legalName}
+                  onChange={(e) => setNewClientForm({ ...newClientForm, legalName: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="font-bold block mb-1">Contact Person *</label>
+                  <input
+                    type="text"
+                    required
+                    placeholder="Director / HR Head"
+                    value={newClientForm.contactPerson}
+                    onChange={(e) => setNewClientForm({ ...newClientForm, contactPerson: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold block mb-1">Phone / WhatsApp *</label>
+                  <input
+                    type="tel"
+                    required
+                    placeholder="+91 98000 00000"
+                    value={newClientForm.phone}
+                    onChange={(e) => setNewClientForm({ ...newClientForm, phone: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200"
+                  />
+                </div>
+              </div>
+              <div>
+                <label className="font-bold block mb-1">Official Work Email</label>
+                <input
+                  type="email"
+                  placeholder="accounts@acme.com"
+                  value={newClientForm.email}
+                  onChange={(e) => setNewClientForm({ ...newClientForm, email: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200"
+                />
+              </div>
+              <div>
+                <label className="font-bold block mb-1">Full Billing Address</label>
+                <textarea
+                  rows={2}
+                  placeholder="Street, Industrial Area, City, State - PIN"
+                  value={newClientForm.billingAddress}
+                  onChange={(e) => setNewClientForm({ ...newClientForm, billingAddress: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="font-bold block mb-1">State / Place of Supply</label>
+                  <input
+                    type="text"
+                    value={newClientForm.placeOfSupply}
+                    onChange={(e) => setNewClientForm({ ...newClientForm, placeOfSupply: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold block mb-1">GSTIN (if registered)</label>
+                  <input
+                    type="text"
+                    placeholder="33XXXXX1234X1ZX"
+                    value={newClientForm.gstin}
+                    onChange={(e) => setNewClientForm({ ...newClientForm, gstin: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-mono"
+                  />
+                </div>
+              </div>
+              <button
+                type="submit"
+                className="w-full py-2.5 rounded-xl bg-purple-900 hover:bg-purple-950 text-white font-bold text-xs shadow-xs"
+              >
+                Save Client to Master
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* MODAL: RECORD PAYMENT & RECEIPT (Section 14)               */}
+      {/* ========================================================= */}
+      {showPaymentModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-md w-full p-6 space-y-4 shadow-2xl border border-slate-200">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <h3 className="font-black text-sm text-slate-900">Record Client Payment</h3>
+              <button onClick={() => setShowPaymentModal(false)} className="text-slate-400 hover:text-slate-600">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+            <form onSubmit={handleRecordPaymentSubmit} className="space-y-3 text-xs">
+              <div>
+                <label className="font-bold block mb-1">Select Invoice *</label>
+                <select
+                  required
+                  value={paymentForm.invoiceId}
+                  onChange={(e) => {
+                    const inv = invoices.find((i) => i.id === e.target.value);
+                    setPaymentForm({
+                      ...paymentForm,
+                      invoiceId: e.target.value,
+                      amount: inv ? inv.balanceDue : 0
+                    });
+                  }}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white"
+                >
+                  <option value="">Select invoice to settle...</option>
+                  {invoices
+                    .filter((i) => i.balanceDue > 0)
+                    .map((inv) => (
+                      <option key={inv.id} value={inv.id}>
+                        {inv.invoiceNumber} — {inv.companyName} (Due: ₹{inv.balanceDue.toLocaleString('en-IN')})
+                      </option>
+                    ))}
+                </select>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="font-bold block mb-1">Amount Received (₹) *</label>
+                  <input
+                    type="number"
+                    required
+                    value={paymentForm.amount}
+                    onChange={(e) => setPaymentForm({ ...paymentForm, amount: Number(e.target.value) })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-bold text-emerald-800"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold block mb-1">TDS Deducted (₹)</label>
+                  <input
+                    type="number"
+                    value={paymentForm.tdsDeducted}
+                    onChange={(e) => setPaymentForm({ ...paymentForm, tdsDeducted: Number(e.target.value) })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200"
+                  />
+                </div>
+              </div>
+              <div className="grid grid-cols-2 gap-2">
+                <div>
+                  <label className="font-bold block mb-1">Payment Date *</label>
+                  <input
+                    type="date"
+                    required
+                    value={paymentForm.paymentDate}
+                    onChange={(e) => setPaymentForm({ ...paymentForm, paymentDate: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold block mb-1">Mode *</label>
+                  <select
+                    value={paymentForm.paymentMode}
+                    onChange={(e) =>
+                      setPaymentForm({ ...paymentForm, paymentMode: e.target.value as PaymentRecord['paymentMode'] })
+                    }
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white"
+                  >
+                    <option value="NEFT / RTGS">NEFT / RTGS</option>
+                    <option value="UPI / GPay">UPI / GPay</option>
+                    <option value="IMPS">IMPS</option>
+                    <option value="Cheque">Cheque</option>
+                    <option value="Direct Bank Transfer">Direct Bank Transfer</option>
+                  </select>
+                </div>
+              </div>
+              <div>
+                <label className="font-bold block mb-1">Bank UTR / Transaction Reference *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="e.g. IDIBN26090987654"
+                  value={paymentForm.utrReference}
+                  onChange={(e) => setPaymentForm({ ...paymentForm, utrReference: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-mono"
+                />
+              </div>
+              <button
+                type="submit"
+                className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-xs"
+              >
+                Record Payment & Generate Receipt
+              </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* MODAL: RUN RECURRING BATCH WITH HEADCOUNT CONFIRMATION (Sec 12) */}
+      {/* ========================================================= */}
+      {showRecurringModal && (
+        <div className="fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 space-y-4 shadow-2xl border border-slate-200 max-h-[90vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div>
+                <h3 className="font-black text-sm text-slate-900">Monthly Recurring Payroll Generator</h3>
+                <p className="text-[11px] text-slate-500">Confirm current headcount for each active client before draft creation</p>
+              </div>
+              <button onClick={() => setShowRecurringModal(false)} className="text-slate-400 hover:text-slate-600">
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            <div className="space-y-3 text-xs">
+              <div>
+                <label className="font-bold block mb-1">Target Billing Month</label>
+                <input
+                  type="text"
+                  value={recurringMonth}
+                  onChange={(e) => setRecurringMonth(e.target.value)}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-bold text-purple-950"
+                />
+              </div>
+
+              <div className="space-y-2">
+                <span className="font-bold text-slate-700 block">Confirm Active Headcount:</span>
+                {invoices
+                  .filter((i) => i.isRecurring)
+                  .map((inv) => {
+                    const currentCount = recurringHeadcountMap[inv.id] || inv.recurringHeadcount || 15;
+                    const rate = inv.recurringPerEmpRate || 100;
+                    return (
+                      <div key={inv.id} className="p-3 bg-slate-50 rounded-2xl border border-slate-200 flex items-center justify-between gap-3">
+                        <div>
+                          <div className="font-bold text-slate-900">{inv.companyName}</div>
+                          <div className="text-[11px] text-slate-500">Rate: ₹{rate} / emp / month</div>
+                        </div>
+                        <div className="flex items-center gap-2">
+                          <span className="text-slate-500">Headcount:</span>
+                          <input
+                            type="number"
+                            min={1}
+                            value={currentCount}
+                            onChange={(e) => {
+                              const val = Number(e.target.value);
+                              setRecurringHeadcountMap({ ...recurringHeadcountMap, [inv.id]: val });
+                            }}
+                            className="w-20 px-2 py-1 rounded-lg border border-slate-300 font-black text-center"
+                          />
+                          <span className="font-bold text-purple-900 w-20 text-right">
+                            = ₹{(currentCount * rate).toLocaleString('en-IN')}
+                          </span>
+                        </div>
+                      </div>
+                    );
+                  })}
+              </div>
+
+              <div className="p-3 bg-purple-50 rounded-xl text-[11px] text-purple-900 leading-snug">
+                <strong>Rule:</strong> Generated invoices will be created in <em>Draft</em> state. Admin can review, modify, or approve before formal client dispatch.
+              </div>
+
+              <button
+                onClick={handleGenerateRecurringInvoices}
+                className="w-full py-2.5 rounded-xl bg-purple-900 hover:bg-purple-950 text-white font-bold text-xs shadow-xs flex items-center justify-center gap-1.5"
+              >
+                <RefreshCw className="w-4 h-4" />
+                <span>Generate Draft Invoices for {recurringMonth}</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
