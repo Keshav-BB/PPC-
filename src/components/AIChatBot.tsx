@@ -16,9 +16,11 @@ import {
   ArrowRight,
   ChevronRight,
   Shield,
+  Phone,
   HelpCircle,
   Building2,
-  ExternalLink
+  ExternalLink,
+  ShieldAlert
 } from 'lucide-react';
 import {
   ChatMessage,
@@ -27,8 +29,10 @@ import {
   APPROVED_PACKAGES,
   BUSINESS_STAGES,
   buildWhatsAppLink,
-  calculateLeadScore
+  calculateLeadScore,
+  getLeadScoreTier
 } from '@/lib/botKnowledge';
+import { saveNewLead } from '@/lib/leadStorage';
 
 interface AIChatBotProps {
   isOpen: boolean;
@@ -41,44 +45,89 @@ interface AIChatBotProps {
   } | null;
 }
 
+const INITIAL_QUICK_OPTIONS = [
+  'Start a New Business',
+  'Hire & Set Up HR',
+  'Payroll & Compliance',
+  'Website/Software/Automation',
+  'Accounts',
+  'SOP/Processes',
+  'Marketing',
+  'Complete Business Support'
+];
+
 export default function AIChatBot({
   isOpen,
   onClose,
   onOpenConsultation,
   initialContext
 }: AIChatBotProps) {
+  const [conversationId, setConversationId] = useState<string>(() =>
+    'PP-CONV-' + Date.now().toString(36) + '-' + Math.random().toString(36).substring(2, 6)
+  );
   const [messages, setMessages] = useState<ChatMessage[]>([
     {
       role: 'assistant',
       content:
         '👋 Welcome to **People Point Consultants**! I am your **AI Business Advisor**.\n\n' +
-        'We help founders and established companies **Turn Ideas into Running Businesses** across 7 core operating pillars: Setup, HR, Payroll, Tech, Accounts, SOPs, and Growth.\n\n' +
-        'Where are you currently on your business journey?'
+        'We help founders and growing companies **Turn Ideas into Running Businesses** across 7 core operating pillars: Setup, HR, Payroll, Tech, Accounts, SOPs, and Growth.\n\n' +
+        'Which business area would you like to explore first?'
     }
   ]);
   const [inputValue, setInputValue] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [quickReplies, setQuickReplies] = useState<string[]>([
-    '💡 Idea / Pre-Launch',
-    '🏢 Newly Registered',
-    '⚙️ Need HR & Payroll',
-    '🚀 Scaling Fast (All-in-One)'
-  ]);
+  const [quickReplies, setQuickReplies] = useState<string[]>(INITIAL_QUICK_OPTIONS);
   const [leadProfile, setLeadProfile] = useState<Partial<LeadProfile>>({ score: 20 });
   const [activeRecommendation, setActiveRecommendation] = useState<BotRecommendation | null>(null);
   const [showLeadForm, setShowLeadForm] = useState(false);
   const [leadCaptured, setLeadCaptured] = useState(false);
-  const [leadForm, setLeadForm] = useState({ name: '', phone: '', email: '', city: '' });
+  const [leadForm, setLeadForm] = useState({ name: '', phone: '', email: '', company: '', city: '' });
   const [leadSubmitting, setLeadSubmitting] = useState(false);
+  const [showHandoffActions, setShowHandoffActions] = useState(false);
+  const [showPrivacyBanner, setShowPrivacyBanner] = useState(true);
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
+
+  // Client-side analytics event dispatcher (UAT Section 10)
+  const trackChatEvent = (eventName: string, params?: Record<string, any>) => {
+    if (typeof window !== 'undefined') {
+      try {
+        const payload = {
+          event: eventName,
+          conversationId,
+          timestamp: new Date().toISOString(),
+          ...params
+        };
+        window.dispatchEvent(new CustomEvent('pp_analytics', { detail: payload }));
+        if ((window as any).dataLayer && Array.isArray((window as any).dataLayer)) {
+          (window as any).dataLayer.push(payload);
+        }
+      } catch (e) {
+        console.error('Analytics tracking error:', e);
+      }
+    }
+  };
+
+  // Track chat opening
+  useEffect(() => {
+    if (isOpen) {
+      trackChatEvent('chatbot_opened');
+    }
+  }, [isOpen]);
+
+  const handleClose = () => {
+    if (messages.length > 1 && !leadCaptured) {
+      trackChatEvent('chat_abandoned', { messageCount: messages.length });
+    }
+    onClose();
+  };
 
   // Auto-scroll to bottom of chat
   useEffect(() => {
     if (isOpen) {
       messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [messages, isLoading, isOpen, showLeadForm]);
+  }, [messages, isLoading, isOpen, showLeadForm, showHandoffActions]);
 
   // Handle initial context injection if triggered from external buttons (Hero / Journey Selector)
   useEffect(() => {
@@ -99,6 +148,17 @@ export default function AIChatBot({
     const text = (textToSend || inputValue).trim();
     if (!text || isLoading) return;
 
+    if (messages.length === 1) {
+      trackChatEvent('chat_started', { firstMessage: text });
+    }
+
+    // Check for user intent triggers that mandate immediate human handoff options
+    const handoffTriggers = /price|pricing|cost|quote|quotation|how much|charges|fee|call me|callback|phone|call back|urgent|talk to human|speak to someone|spoc/i;
+    if (handoffTriggers.test(text)) {
+      setShowHandoffActions(true);
+      trackChatEvent('human_handoff_requested', { triggerText: text });
+    }
+
     const newMessages: ChatMessage[] = [...messages, { role: 'user', content: text }];
     setMessages(newMessages);
     setInputValue('');
@@ -111,7 +171,8 @@ export default function AIChatBot({
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           messages: newMessages,
-          profile: leadProfile
+          profile: leadProfile,
+          conversationId
         })
       });
 
@@ -122,6 +183,7 @@ export default function AIChatBot({
 
         if (data.recommendedPackage) {
           setActiveRecommendation(data.recommendedPackage);
+          trackChatEvent('package_recommended', { package: data.recommendedPackage.packageName });
         }
 
         if (data.quickReplies && Array.isArray(data.quickReplies)) {
@@ -132,9 +194,10 @@ export default function AIChatBot({
           setLeadProfile((prev) => ({ ...prev, score: data.leadScore }));
         }
 
-        // Trigger lead form if user has had >= 3 interactions and hasn't submitted yet
+        // Trigger lead form if user has engaged in deep discovery or handoff is needed
         if (newMessages.length >= 6 && !leadCaptured) {
           setShowLeadForm(true);
+          trackChatEvent('lead_capture_started');
         }
       } else {
         throw new Error('No reply received');
@@ -149,6 +212,7 @@ export default function AIChatBot({
             'I can directly connect you with our designated Single Point of Contact (SPOC) on WhatsApp at **+91 88073 04713** or help you book a free consultation.'
         }
       ]);
+      setShowHandoffActions(true);
       setQuickReplies(['Chat on WhatsApp (+91 88073 04713)', 'Book Free Consultation']);
     } finally {
       setIsLoading(false);
@@ -156,25 +220,23 @@ export default function AIChatBot({
   };
 
   const handleReset = () => {
+    const newId = 'PP-CONV-' + Date.now().toString(36) + '-' + Math.random().toString(36).substring(2, 6);
+    setConversationId(newId);
     setMessages([
       {
         role: 'assistant',
         content:
           '👋 Welcome to **People Point Consultants**! I am your **AI Business Advisor**.\n\n' +
-          'We help founders and established companies **Turn Ideas into Running Businesses** across 7 core operating pillars: Setup, HR, Payroll, Tech, Accounts, SOPs, and Growth.\n\n' +
-          'Where are you currently on your business journey?'
+          'We help founders and growing companies **Turn Ideas into Running Businesses** across 7 core operating pillars: Setup, HR, Payroll, Tech, Accounts, SOPs, and Growth.\n\n' +
+          'Which business area would you like to explore first?'
       }
     ]);
     setInputValue('');
-    setQuickReplies([
-      '💡 Idea / Pre-Launch',
-      '🏢 Newly Registered',
-      '⚙️ Need HR & Payroll',
-      '🚀 Scaling Fast (All-in-One)'
-    ]);
+    setQuickReplies(INITIAL_QUICK_OPTIONS);
     setActiveRecommendation(null);
     setShowLeadForm(false);
     setLeadCaptured(false);
+    setShowHandoffActions(false);
     setLeadProfile({ score: 20 });
   };
 
@@ -184,18 +246,64 @@ export default function AIChatBot({
 
     setLeadSubmitting(true);
     try {
-      await fetch('/api/leads', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+      const calculatedScore = calculateLeadScore(
+        {
+          ...leadProfile,
           name: leadForm.name,
           phone: leadForm.phone,
           email: leadForm.email,
-          city: leadForm.city,
-          businessStage: leadProfile.businessStage || 'Not specified',
-          service: activeRecommendation?.packageName || leadProfile.primaryNeed || 'AI Business Advisory Inquiry',
-          source: 'AI Business Advisor Chat'
-        })
+          company: leadForm.company,
+          location: leadForm.city
+        },
+        'Form Submitted'
+      );
+
+      const leadPayload = {
+        fullName: leadForm.name,
+        companyName: leadForm.company || 'Not specified',
+        email: leadForm.email || 'Not provided',
+        phone: leadForm.phone,
+        city: leadForm.city || 'Not specified',
+        businessStage: leadProfile.businessStage || 'Early Stage',
+        teamSize: leadProfile.teamSize || '1-10',
+        servicesNeeded: leadProfile.primaryNeed
+          ? [leadProfile.primaryNeed]
+          : activeRecommendation
+          ? [activeRecommendation.packageName]
+          : ['AI Business Advisory Inquiry'],
+        challenge:
+          leadProfile.notes ||
+          messages
+            .filter((m) => m.role === 'user')
+            .map((m) => m.content)
+            .slice(-2)
+            .join('; ') ||
+          'Inquired via AI Advisor',
+        expectedTimeline: leadProfile.timeline || 'Immediate',
+        consultationMode: 'Phone / WhatsApp / Video Call',
+        source: 'AI Business Advisor Chat',
+        leadScore: calculatedScore,
+        conversationId,
+        recommendedPackage: activeRecommendation?.packageName,
+        entityStatus: leadProfile.entityStatus
+      };
+
+      // 1. Save locally so /admin/leads is immediately populated in client session
+      saveNewLead(leadPayload);
+
+      // 2. Transmit to backend API for centralized CRM logging
+      await fetch('/api/leads', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(leadPayload)
+      });
+
+      trackChatEvent('lead_captured', {
+        name: leadForm.name,
+        phone: leadForm.phone,
+        email: leadForm.email,
+        company: leadForm.company,
+        score: calculatedScore
       });
 
       setLeadCaptured(true);
@@ -205,15 +313,16 @@ export default function AIChatBot({
         name: leadForm.name,
         phone: leadForm.phone,
         email: leadForm.email,
+        company: leadForm.company,
         location: leadForm.city,
-        score: calculateLeadScore({ ...prev, phone: leadForm.phone })
+        score: calculatedScore
       }));
 
       setMessages((prev) => [
         ...prev,
         {
           role: 'assistant',
-          content: `✅ Thank you, **${leadForm.name}**! Your requirements have been logged.\n\nAn assigned People Point SPOC will review your business scope. You can also connect immediately on WhatsApp to fast-track your consultation.`
+          content: `✅ Thank you, **${leadForm.name}**! Your requirements have been logged under Reference ID **${conversationId}**.\n\nAn assigned People Point SPOC will review your business scope and reach out. You can also tap below to connect immediately on WhatsApp.`
         }
       ]);
     } catch (err) {
@@ -263,7 +372,7 @@ export default function AIChatBot({
               <RotateCcw className="w-4 h-4" />
             </button>
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="p-2 rounded-xl text-purple-200 hover:text-white hover:bg-white/10 transition-colors"
               title="Close chat"
               aria-label="Close chat"
@@ -273,13 +382,35 @@ export default function AIChatBot({
           </div>
         </div>
 
+        {/* First-Use Privacy Banner (UAT Section 9) */}
+        {showPrivacyBanner && (
+          <div className="bg-purple-50/90 border-b border-purple-200/80 px-3.5 py-1.5 flex items-center justify-between text-[11px] text-slate-700 shrink-0">
+            <div className="flex items-center gap-1.5 pr-2">
+              <ShieldAlert className="w-3.5 h-3.5 text-purple-700 shrink-0" />
+              <span>
+                🔒 <strong>Privacy Notice:</strong> We do not store sensitive credentials or payment data. Chat transcript is processed to assist advisory. Read our{' '}
+                <Link href="/privacy" target="_blank" className="text-purple-800 underline font-semibold hover:text-purple-950">
+                  Privacy Policy
+                </Link>.
+              </span>
+            </div>
+            <button
+              onClick={() => setShowPrivacyBanner(false)}
+              className="text-slate-400 hover:text-slate-600 p-0.5 rounded cursor-pointer shrink-0"
+              aria-label="Dismiss privacy notice"
+            >
+              <X className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+
         {/* Lead Readiness Status Pill (Real-time Diagnostic Progress) */}
         <div className="bg-slate-50 px-4 py-2 border-b border-slate-200/80 flex items-center justify-between text-xs text-slate-600 shrink-0">
           <div className="flex items-center gap-1.5 font-medium">
             <Shield className="w-3.5 h-3.5 text-purple-700" />
             <span>Operational Diagnostic:</span>
             <span className="font-bold text-purple-900">
-              {leadProfile.score || 20}% Complete
+              {leadProfile.score || 20}% Complete ({getLeadScoreTier(leadProfile.score || 20).label})
             </span>
           </div>
           <div className="w-24 bg-slate-200 h-1.5 rounded-full overflow-hidden">
@@ -338,6 +469,68 @@ export default function AIChatBot({
             </div>
           )}
 
+          {/* Immediate Human Handoff Action Block (UAT Section 6) */}
+          {showHandoffActions && (
+            <div className="my-2.5 p-3.5 bg-gradient-to-br from-purple-50 via-white to-rose-50 border border-purple-200 rounded-2xl space-y-2.5 animate-in fade-in duration-200 shadow-xs">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-1.5">
+                  <Phone className="w-3.5 h-3.5 text-purple-800" />
+                  <span className="text-xs font-bold text-purple-950">
+                    Connect Directly with Human Advisory / SPOC
+                  </span>
+                </div>
+                <button
+                  onClick={() => setShowHandoffActions(false)}
+                  className="text-[11px] font-semibold text-purple-700 hover:text-purple-900 cursor-pointer"
+                >
+                  Dismiss
+                </button>
+              </div>
+              <p className="text-[11px] text-slate-600 leading-snug">
+                For commercial quotations, statutory timelines, or custom multi-service scopes, connect directly with our designated partner team:
+              </p>
+              <div className="grid grid-cols-2 gap-2 pt-0.5">
+                <a
+                  href={whatsAppUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  onClick={() => trackChatEvent('whatsapp_clicked')}
+                  className="py-2 px-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-[11px] flex items-center justify-center gap-1.5 shadow-xs transition-colors"
+                >
+                  <MessageCircle className="w-3.5 h-3.5 fill-white" />
+                  <span>Chat on WhatsApp</span>
+                </a>
+                <button
+                  onClick={() => {
+                    trackChatEvent('consultation_clicked');
+                    onClose();
+                    onOpenConsultation?.(activeRecommendation?.packageName);
+                  }}
+                  className="py-2 px-2.5 rounded-xl bg-purple-900 hover:bg-purple-950 text-white font-bold text-[11px] flex items-center justify-center gap-1.5 shadow-xs transition-colors"
+                >
+                  <Calendar className="w-3.5 h-3.5" />
+                  <span>Book Consultation</span>
+                </button>
+                <button
+                  onClick={() => {
+                    trackChatEvent('callback_requested');
+                    setShowLeadForm(true);
+                  }}
+                  className="py-2 px-2.5 rounded-xl bg-white hover:bg-purple-100 text-purple-950 border border-purple-300 font-bold text-[11px] flex items-center justify-center gap-1.5 shadow-2xs transition-colors"
+                >
+                  <Phone className="w-3.5 h-3.5 text-purple-800" />
+                  <span>Request Callback</span>
+                </button>
+                <button
+                  onClick={() => setShowHandoffActions(false)}
+                  className="py-2 px-2.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 font-semibold text-[11px] flex items-center justify-center gap-1 transition-colors"
+                >
+                  <span>Continue Chatting</span>
+                </button>
+              </div>
+            </div>
+          )}
+
           {/* Recommended Package Card Highlight */}
           {activeRecommendation && (
             <div className="my-3 p-4 rounded-2xl bg-gradient-to-br from-purple-50 via-white to-pink-50 border border-purple-200 shadow-sm space-y-3">
@@ -367,6 +560,7 @@ export default function AIChatBot({
               <div className="flex flex-wrap gap-2 pt-1">
                 <button
                   onClick={() => {
+                    trackChatEvent('consultation_clicked', { package: activeRecommendation.packageName });
                     onClose();
                     onOpenConsultation?.(activeRecommendation.packageName);
                   }}
@@ -379,6 +573,7 @@ export default function AIChatBot({
                   href={whatsAppUrl}
                   target="_blank"
                   rel="noopener noreferrer"
+                  onClick={() => trackChatEvent('whatsapp_clicked', { package: activeRecommendation.packageName })}
                   className="py-2 px-3 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs transition-colors flex items-center justify-center gap-1.5"
                 >
                   <MessageCircle className="w-3.5 h-3.5 fill-white" />
@@ -406,7 +601,7 @@ export default function AIChatBot({
                 </button>
               </div>
               <p className="text-[11px] text-slate-600">
-                Leave your details to receive a customized scope summary and direct partner consultation.
+                Leave your contact details to receive a customized scope summary, official proposal, or fast-track callback.
               </p>
               <form onSubmit={handleLeadSubmit} className="space-y-2.5">
                 <input
@@ -427,10 +622,10 @@ export default function AIChatBot({
                 />
                 <div className="grid grid-cols-2 gap-2">
                   <input
-                    type="email"
-                    placeholder="Work Email"
-                    value={leadForm.email}
-                    onChange={(e) => setLeadForm({ ...leadForm, email: e.target.value })}
+                    type="text"
+                    placeholder="Company / Brand"
+                    value={leadForm.company}
+                    onChange={(e) => setLeadForm({ ...leadForm, company: e.target.value })}
                     className="text-xs px-3 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-purple-700"
                   />
                   <input
@@ -441,6 +636,13 @@ export default function AIChatBot({
                     className="text-xs px-3 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-purple-700"
                   />
                 </div>
+                <input
+                  type="email"
+                  placeholder="Work Email (optional)"
+                  value={leadForm.email}
+                  onChange={(e) => setLeadForm({ ...leadForm, email: e.target.value })}
+                  className="w-full text-xs px-3 py-2 rounded-xl border border-slate-300 focus:outline-none focus:ring-2 focus:ring-purple-700"
+                />
                 <div className="flex items-start gap-2 pt-0.5 pb-1">
                   <input
                     type="checkbox"
@@ -471,12 +673,16 @@ export default function AIChatBot({
                 <button
                   key={i}
                   onClick={() => {
+                    trackChatEvent('quick_prompt_clicked', { prompt: reply });
                     if (reply.includes('WhatsApp')) {
+                      trackChatEvent('whatsapp_clicked');
                       window.open(whatsAppUrl, '_blank');
-                    } else if (reply.includes('Book Free Consultation')) {
+                    } else if (reply.includes('Book Free Consultation') || reply.includes('Book Consultation')) {
+                      trackChatEvent('consultation_clicked');
                       onClose();
                       onOpenConsultation?.(activeRecommendation?.packageName);
                     } else {
+                      trackChatEvent('service_selected', { service: reply });
                       handleSendMessage(reply);
                     }
                   }}
@@ -498,6 +704,7 @@ export default function AIChatBot({
             href={whatsAppUrl}
             target="_blank"
             rel="noopener noreferrer"
+            onClick={() => trackChatEvent('whatsapp_clicked')}
             className="flex-1 py-1.5 px-3 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 font-bold transition-colors flex items-center justify-center gap-1.5 text-[11px]"
           >
             <MessageCircle className="w-3.5 h-3.5 fill-emerald-600 text-emerald-600" />
@@ -506,6 +713,7 @@ export default function AIChatBot({
 
           <button
             onClick={() => {
+              trackChatEvent('consultation_clicked');
               onClose();
               onOpenConsultation?.(activeRecommendation?.packageName);
             }}

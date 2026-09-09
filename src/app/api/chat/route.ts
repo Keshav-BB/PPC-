@@ -110,7 +110,7 @@ export async function POST(req: NextRequest) {
           const leadScore = calculateLeadScore({
             ...profile,
             primaryNeed: matchedPackage?.packageName || profile.primaryNeed
-          });
+          }, userText);
 
           return NextResponse.json({
             reply: replyText,
@@ -137,7 +137,7 @@ export async function POST(req: NextRequest) {
       ...profile,
       primaryNeed: fallback.recommendedPackage?.packageName || profile.primaryNeed,
       businessStage: fallback.suggestedStage || profile.businessStage
-    });
+    }, userText);
 
     return NextResponse.json({
       reply: fallback.reply,

@@ -324,6 +324,18 @@ export default function LeadsDashboardPage() {
                     <div><strong>Team Size:</strong> {selectedLead.teamSize}</div>
                     <div><strong>Timeline:</strong> {selectedLead.expectedTimeline}</div>
                     <div><strong>Mode:</strong> {selectedLead.consultationMode}</div>
+                    {selectedLead.leadScore && (
+                      <div><strong>Lead Qualification:</strong> <span className="font-bold text-purple-900">{selectedLead.leadScore}/100</span></div>
+                    )}
+                    {selectedLead.recommendedPackage && (
+                      <div><strong>Recommended Fit:</strong> <span className="font-semibold text-rose-700">{selectedLead.recommendedPackage}</span></div>
+                    )}
+                    {selectedLead.entityStatus && (
+                      <div><strong>Entity Status:</strong> {selectedLead.entityStatus}</div>
+                    )}
+                    {selectedLead.conversationId && (
+                      <div className="text-[10px] text-slate-500 font-mono pt-1"><strong>Session:</strong> {selectedLead.conversationId}</div>
+                    )}
                   </div>
 
                   <div className="p-3 rounded-2xl bg-slate-50 border border-slate-200/70 space-y-1">

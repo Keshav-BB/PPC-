@@ -17,6 +17,10 @@ export interface LeadRecord {
   utmCampaign?: string;
   status: 'New Lead' | 'Contacted' | 'Qualified' | 'Consultation Scheduled' | 'Proposal Sent' | 'Won';
   estimatedValue?: string;
+  leadScore?: number;
+  conversationId?: string;
+  recommendedPackage?: string;
+  entityStatus?: string;
   createdAt: string;
   notes?: string;
 }
@@ -124,6 +128,10 @@ export function saveNewLead(lead: Omit<LeadRecord, 'id' | 'createdAt' | 'status'
     utmMedium: lead.utmMedium ? sanitizeInput(lead.utmMedium) : undefined,
     utmCampaign: lead.utmCampaign ? sanitizeInput(lead.utmCampaign) : undefined,
     estimatedValue: lead.estimatedValue ? sanitizeInput(lead.estimatedValue) : undefined,
+    leadScore: typeof lead.leadScore === 'number' ? lead.leadScore : undefined,
+    conversationId: lead.conversationId ? sanitizeInput(lead.conversationId) : undefined,
+    recommendedPackage: lead.recommendedPackage ? sanitizeInput(lead.recommendedPackage) : undefined,
+    entityStatus: lead.entityStatus ? sanitizeInput(lead.entityStatus) : undefined,
     status: 'New Lead',
     createdAt: new Date().toISOString()
   };
