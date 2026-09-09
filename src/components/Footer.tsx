@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Mail, Phone, MapPin, Shield, CheckCircle2, ArrowRight } from 'lucide-react';
+import { Mail, Phone, MapPin, Shield, CheckCircle2, ArrowRight, Receipt, FileText } from 'lucide-react';
 import { solutions } from '@/data/solutions';
 
 export default function Footer() {
@@ -116,6 +116,24 @@ export default function Footer() {
               <li>
                 <Link href="/industries" className="text-slate-400 hover:text-white transition-colors">
                   Industries Supported
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/admin/billing?tab=quotations&action=new-quote"
+                  className="text-purple-300 hover:text-white transition-colors flex items-center gap-1.5"
+                >
+                  <FileText className="w-3 h-3 text-purple-400" />
+                  <span>Create Quotation (Studio)</span>
+                </Link>
+              </li>
+              <li>
+                <Link
+                  href="/admin/billing?tab=invoices&action=new-invoice"
+                  className="text-rose-300 hover:text-white transition-colors flex items-center gap-1.5"
+                >
+                  <Receipt className="w-3 h-3 text-rose-400" />
+                  <span>Create Tax Invoice</span>
                 </Link>
               </li>
               <li>

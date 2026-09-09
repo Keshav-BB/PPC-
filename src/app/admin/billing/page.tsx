@@ -112,6 +112,12 @@ export default function AdminBillingPage() {
   const [quoteEditorMode, setQuoteEditorMode] = useState<'create' | 'edit' | 'preview'>('preview');
   const [invoiceEditorMode, setInvoiceEditorMode] = useState<'create' | 'edit' | 'preview'>('preview');
 
+  // Interactive Quote & Invoice Creator Modal States
+  const [showQuoteModal, setShowQuoteModal] = useState(false);
+  const [quoteFormData, setQuoteFormData] = useState<QuotationRecord | null>(null);
+  const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+  const [invoiceFormData, setInvoiceFormData] = useState<InvoiceRecord | null>(null);
+
   // New Client Modal
   const [showNewClientModal, setShowNewClientModal] = useState(false);
   const [newClientForm, setNewClientForm] = useState<Partial<ClientRecord>>({
@@ -172,6 +178,29 @@ export default function AdminBillingPage() {
     if (initialInvoices.length > 0) {
       setSelectedInvoice(initialInvoices[0]);
     }
+
+    // Check URL parameters for tab and action (e.g. ?tab=quotations&action=new-quote)
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const tabParam = params.get('tab');
+      const actionParam = params.get('action');
+
+      if (tabParam && ['quotations', 'invoices', 'clients', 'payments', 'receipts', 'rate_cards', 'templates', 'reports', 'settings', 'audit'].includes(tabParam)) {
+        setActiveTab(tabParam as ActiveTab);
+      }
+
+      if (actionParam === 'new-quote') {
+        setActiveTab('quotations');
+        setTimeout(() => {
+          handleOpenNewQuoteModal();
+        }, 150);
+      } else if (actionParam === 'new-invoice') {
+        setActiveTab('invoices');
+        setTimeout(() => {
+          handleOpenNewInvoiceModal();
+        }, 150);
+      }
+    }
   }, []);
 
   // Update headcount map when invoices load
@@ -210,7 +239,7 @@ export default function AdminBillingPage() {
   // -------------------------------------------------------------
   // Quotation Management Actions
   // -------------------------------------------------------------
-  const handleCreateNewQuote = () => {
+  const handleOpenNewQuoteModal = () => {
     const nextSeq = (settings.qtnSequence || 5) + 1;
     const newDocNum = `QTN/2026-27/${String(nextSeq).padStart(3, '0')}`;
     const today = new Date().toISOString().split('T')[0];
@@ -218,7 +247,7 @@ export default function AdminBillingPage() {
 
     const defaultClient = clients[0] || SEED_CLIENTS[0];
 
-    const newQuote: QuotationRecord = {
+    const draftQuote: QuotationRecord = {
       id: 'QTN-' + Date.now().toString(36),
       quoteNumber: newDocNum,
       revision: 0,
@@ -282,19 +311,71 @@ export default function AdminBillingPage() {
       updatedAt: new Date().toISOString()
     };
 
-    const updated = [newQuote, ...quotations];
-    setQuotations(updated);
-    saveQuotations(updated);
-    setSelectedQuote(newQuote);
-    setQuoteEditorMode('edit');
+    setQuoteFormData(draftQuote);
+    setShowQuoteModal(true);
+  };
 
-    // Update sequence
-    const updatedSettings = { ...settings, qtnSequence: nextSeq };
-    setSettings(updatedSettings);
-    saveSettings(updatedSettings);
+  const handleOpenEditQuoteModal = (quote: QuotationRecord) => {
+    setQuoteFormData({
+      ...quote,
+      items: quote.items.map((it) => ({ ...it })),
+      scopeSections: quote.scopeSections.map((s) => ({ ...s, items: [...s.items] }))
+    });
+    setShowQuoteModal(true);
+  };
 
-    logAuditEvent(currentUser, currentRole, 'CREATE_QUOTATION', 'Quotation', newDocNum, `Initialized draft quotation.`);
-    showToast(`Quotation ${newDocNum} created successfully.`);
+  const handleSaveQuoteModal = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!quoteFormData) return;
+
+    // Recalculate line item amounts and totals
+    const sub = quoteFormData.items.reduce((acc, it) => acc + (Number(it.amount) || (it.quantity * it.rate)), 0);
+    const disc = Number(quoteFormData.discount) || 0;
+    const net = Math.max(0, sub - disc);
+    const tax = quoteFormData.taxRate > 0 ? (net * quoteFormData.taxRate) / 100 : 0;
+    const tot = net + tax;
+
+    const isPerEmp = quoteFormData.quoteType === 'Per Employee' || quoteFormData.quoteType === 'Monthly';
+    const annual = isPerEmp ? tot * 12 : undefined;
+
+    const finalQuote: QuotationRecord = {
+      ...quoteFormData,
+      subtotal: sub,
+      discount: disc,
+      netAfterDiscount: net,
+      taxAmount: tax,
+      totalAmount: tot,
+      balanceDue: tot - (Number(quoteFormData.advanceRequired) || 0),
+      annualIllustration: annual,
+      updatedAt: new Date().toISOString()
+    };
+
+    const exists = quotations.some((q) => q.id === finalQuote.id);
+    let updatedQuotes: QuotationRecord[];
+
+    if (exists) {
+      updatedQuotes = quotations.map((q) => (q.id === finalQuote.id ? finalQuote : q));
+      logAuditEvent(currentUser, currentRole, 'UPDATE_QUOTATION', 'Quotation', finalQuote.revisionCode, `Updated quotation details.`);
+      showToast(`Quotation ${finalQuote.revisionCode} updated successfully.`);
+    } else {
+      updatedQuotes = [finalQuote, ...quotations];
+      const nextSeq = (settings.qtnSequence || 5) + 1;
+      const updatedSettings = { ...settings, qtnSequence: nextSeq };
+      setSettings(updatedSettings);
+      saveSettings(updatedSettings);
+      logAuditEvent(currentUser, currentRole, 'CREATE_QUOTATION', 'Quotation', finalQuote.revisionCode, `Created quotation ${finalQuote.revisionCode}.`);
+      showToast(`Quotation ${finalQuote.revisionCode} created successfully.`);
+    }
+
+    setQuotations(updatedQuotes);
+    saveQuotations(updatedQuotes);
+    setSelectedQuote(finalQuote);
+    setActiveTab('quotations');
+    setShowQuoteModal(false);
+  };
+
+  const handleCreateNewQuote = () => {
+    handleOpenNewQuoteModal();
   };
 
   const handleCreateRevision = (quote: QuotationRecord) => {
@@ -570,6 +651,135 @@ export default function AdminBillingPage() {
       `Generated ${newDrafts.length} recurring draft invoices for ${recurringMonth} with confirmed headcounts.`
     );
     showToast(`Generated ${newDrafts.length} recurring payroll drafts for ${recurringMonth}.`);
+  };
+
+  // -------------------------------------------------------------
+  // Invoice Management & Creator Actions (Sections 10 & 11)
+  // -------------------------------------------------------------
+  const handleOpenNewInvoiceModal = (presetClient?: ClientRecord) => {
+    const nextSeq = (settings.invSequence || 8) + 1;
+    const newDocNum = `INV/2026-27/${String(nextSeq).padStart(3, '0')}`;
+    const today = new Date().toISOString().split('T')[0];
+    const dueDate = new Date(Date.now() + (settings.defaultPaymentDueDays || 10) * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .split('T')[0];
+
+    const defaultClient = presetClient || clients[0] || SEED_CLIENTS[0];
+
+    const draftInvoice: InvoiceRecord = {
+      id: 'INV-' + Date.now().toString(36),
+      invoiceNumber: newDocNum,
+      date: today,
+      dueDate,
+      quotationRef: '',
+      invoiceType: 'Monthly Retainer',
+      billingPeriod: new Date().toLocaleString('en-US', { month: 'long', year: 'numeric' }),
+      clientId: defaultClient.id,
+      clientName: defaultClient.contactPerson,
+      companyName: defaultClient.legalName,
+      address: defaultClient.billingAddress,
+      phone: defaultClient.phone,
+      email: defaultClient.email,
+      gstin: defaultClient.gstin || '',
+      placeOfSupply: defaultClient.placeOfSupply,
+      subject: 'Tax Invoice for Monthly Retainer & Operational Consulting',
+      scopeItems: ['Monthly Payroll Computation', 'PF & ESI Filing', 'Statutory MIS Reporting'],
+      items: [
+        {
+          id: '1',
+          description: 'Comprehensive Monthly Retainer Services (15 employees × ₹100/emp/mo)',
+          quantity: 15,
+          unit: 'Emp/Mo',
+          rate: 100,
+          billingFrequency: 'Monthly',
+          amount: 1500
+        }
+      ],
+      subtotal: 1500,
+      discount: 0,
+      netAfterDiscount: 1500,
+      taxRate: settings.gstRegistered ? 18 : 0,
+      taxType: settings.gstRegistered ? 'cgst_sgst' : 'none',
+      taxAmount: 0,
+      totalPayable: 1500,
+      advancePaid: 0,
+      tdsDeducted: 0,
+      balanceDue: 1500,
+      paymentTerms: 'Payment due within 10 business days from date of invoice.',
+      notes: settings.nonTaxMessage,
+      status: 'Issued',
+      isRecurring: false,
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    setInvoiceFormData(draftInvoice);
+    setShowInvoiceModal(true);
+  };
+
+  const handleOpenEditInvoiceModal = (inv: InvoiceRecord) => {
+    setInvoiceFormData({
+      ...inv,
+      items: inv.items.map((it) => ({ ...it })),
+      scopeItems: inv.scopeItems ? [...inv.scopeItems] : []
+    });
+    setShowInvoiceModal(true);
+  };
+
+  const handleSaveInvoiceModal = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!invoiceFormData) return;
+
+    const sub = invoiceFormData.items.reduce((acc, it) => acc + (Number(it.amount) || (it.quantity * it.rate)), 0);
+    const disc = Number(invoiceFormData.discount) || 0;
+    const net = Math.max(0, sub - disc);
+    const tax = invoiceFormData.taxRate > 0 ? (net * invoiceFormData.taxRate) / 100 : 0;
+    const tot = net + tax;
+    const adv = Number(invoiceFormData.advancePaid) || 0;
+    const tds = Number(invoiceFormData.tdsDeducted) || 0;
+    const bal = Math.max(0, tot - adv - tds);
+
+    let status = invoiceFormData.status;
+    if (bal === 0 && tot > 0) {
+      status = 'Paid';
+    } else if (adv > 0 && bal > 0) {
+      status = 'Partially Paid';
+    }
+
+    const finalInvoice: InvoiceRecord = {
+      ...invoiceFormData,
+      subtotal: sub,
+      discount: disc,
+      netAfterDiscount: net,
+      taxAmount: tax,
+      totalPayable: tot,
+      balanceDue: bal,
+      status,
+      updatedAt: new Date().toISOString()
+    };
+
+    const exists = invoices.some((i) => i.id === finalInvoice.id);
+    let updatedInvoices: InvoiceRecord[];
+
+    if (exists) {
+      updatedInvoices = invoices.map((i) => (i.id === finalInvoice.id ? finalInvoice : i));
+      logAuditEvent(currentUser, currentRole, 'UPDATE_INVOICE', 'Invoice', finalInvoice.invoiceNumber, `Updated invoice details.`);
+      showToast(`Invoice ${finalInvoice.invoiceNumber} updated successfully.`);
+    } else {
+      updatedInvoices = [finalInvoice, ...invoices];
+      const nextSeq = (settings.invSequence || 8) + 1;
+      const updatedSettings = { ...settings, invSequence: nextSeq };
+      setSettings(updatedSettings);
+      saveSettings(updatedSettings);
+      logAuditEvent(currentUser, currentRole, 'CREATE_INVOICE', 'Invoice', finalInvoice.invoiceNumber, `Created invoice ${finalInvoice.invoiceNumber}.`);
+      showToast(`Invoice ${finalInvoice.invoiceNumber} created successfully.`);
+    }
+
+    setInvoices(updatedInvoices);
+    saveInvoices(updatedInvoices);
+    setSelectedInvoice(finalInvoice);
+    setActiveTab('invoices');
+    setShowInvoiceModal(false);
   };
 
   // -------------------------------------------------------------
@@ -870,12 +1080,28 @@ export default function AdminBillingPage() {
               </select>
             </div>
 
+            {/* Direct Document Creators */}
+            <button
+              onClick={handleOpenNewQuoteModal}
+              className="px-3 py-1.5 rounded-xl bg-purple-900 hover:bg-purple-950 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>+ Create Quote</span>
+            </button>
+            <button
+              onClick={() => handleOpenNewInvoiceModal()}
+              className="px-3 py-1.5 rounded-xl bg-rose-700 hover:bg-rose-800 text-white text-xs font-bold flex items-center gap-1.5 shadow-sm transition-all"
+            >
+              <Plus className="w-3.5 h-3.5" />
+              <span>+ Create Invoice</span>
+            </button>
+
             {/* Quick Actions */}
             <button
               onClick={handlePrint}
-              className="px-3 py-1.5 rounded-xl bg-purple-900 hover:bg-purple-950 text-white text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors"
+              className="px-3 py-1.5 rounded-xl border border-slate-300 bg-white hover:bg-slate-50 text-slate-800 text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors"
             >
-              <Printer className="w-3.5 h-3.5" />
+              <Printer className="w-3.5 h-3.5 text-purple-900" />
               <span>Print A4</span>
             </button>
             <button
@@ -1121,10 +1347,17 @@ export default function AdminBillingPage() {
 
                     <div className="flex items-center gap-2">
                       <button
+                        onClick={() => handleOpenEditQuoteModal(selectedQuote)}
+                        className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs flex items-center gap-1 transition-colors"
+                      >
+                        <Edit3 className="w-3 h-3 text-purple-700" />
+                        <span>Edit Quote</span>
+                      </button>
+                      <button
                         onClick={() => handleCreateRevision(selectedQuote)}
                         className="px-3 py-1.5 rounded-xl border border-purple-200 bg-purple-50 text-purple-900 font-bold text-xs hover:bg-purple-100 flex items-center gap-1 transition-colors"
                       >
-                        <Edit3 className="w-3 h-3" />
+                        <Copy className="w-3 h-3" />
                         <span>Revise ({selectedQuote.quoteNumber}-R{(selectedQuote.revision || 0) + 1})</span>
                       </button>
                       {selectedQuote.status !== 'Converted to Invoice' && (
@@ -1386,13 +1619,22 @@ export default function AdminBillingPage() {
                   <h3 className="font-extrabold text-sm text-slate-900">Invoice Master</h3>
                   <p className="text-xs text-slate-500">Tax invoices, retainers & payment reconciliation</p>
                 </div>
-                <button
-                  onClick={() => setShowRecurringModal(true)}
-                  className="py-2 px-3.5 rounded-xl bg-purple-900 hover:bg-purple-950 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs transition-colors"
-                >
-                  <RefreshCw className="w-3.5 h-3.5" />
-                  <span>Run Recurring Batch</span>
-                </button>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={() => handleOpenNewInvoiceModal()}
+                    className="py-2 px-3.5 rounded-xl bg-purple-900 hover:bg-purple-950 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs transition-colors"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>New Invoice</span>
+                  </button>
+                  <button
+                    onClick={() => setShowRecurringModal(true)}
+                    className="py-2 px-3 rounded-xl border border-purple-200 bg-purple-50 hover:bg-purple-100 text-purple-900 font-bold text-xs flex items-center gap-1.5 shadow-xs transition-colors"
+                  >
+                    <RefreshCw className="w-3.5 h-3.5" />
+                    <span className="hidden sm:inline">Recurring Batch</span>
+                  </button>
+                </div>
               </div>
 
               {/* Invoice List */}
@@ -1516,6 +1758,13 @@ export default function AdminBillingPage() {
                           <span>Record Receipt</span>
                         </button>
                       )}
+                      <button
+                        onClick={() => handleOpenEditInvoiceModal(selectedInvoice)}
+                        className="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-bold text-xs flex items-center gap-1 transition-colors"
+                      >
+                        <Edit3 className="w-3 h-3 text-purple-700" />
+                        <span>Edit Invoice</span>
+                      </button>
                       <button
                         onClick={handlePrint}
                         className="px-3.5 py-1.5 rounded-xl bg-purple-900 hover:bg-purple-950 text-white font-bold text-xs flex items-center gap-1.5 shadow-xs"
@@ -2595,6 +2844,751 @@ export default function AdminBillingPage() {
                 <span>Generate Draft Invoices for {recurringMonth}</span>
               </button>
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* MODAL: CREATE / EDIT QUOTATION (Section 4 & 5)             */}
+      {/* ========================================================= */}
+      {showQuoteModal && quoteFormData && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-3xl w-full p-6 space-y-5 shadow-2xl border border-slate-200 max-h-[92vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-purple-100 text-purple-800 text-[10px] font-bold uppercase tracking-wider mb-1">
+                  <FileText className="w-3 h-3" />
+                  <span>Quotation Creator Studio</span>
+                </div>
+                <h3 className="font-black text-base text-slate-900">
+                  {quoteFormData.revision && quoteFormData.revision > 0
+                    ? `Edit Revision ${quoteFormData.revisionCode}`
+                    : `Create Commercial Quotation (${quoteFormData.revisionCode})`}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowQuoteModal(false)}
+                className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveQuoteModal} className="space-y-4 text-xs">
+              {/* Client Selection Row */}
+              <div className="bg-purple-50/70 p-3.5 rounded-2xl border border-purple-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="font-bold text-purple-950">Select Client / Lead *</label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowQuoteModal(false);
+                      setShowNewClientModal(true);
+                    }}
+                    className="text-[11px] font-bold text-purple-700 hover:underline"
+                  >
+                    + Add New Client
+                  </button>
+                </div>
+                <select
+                  value={quoteFormData.clientId}
+                  onChange={(e) => {
+                    const c = clients.find((item) => item.id === e.target.value);
+                    if (c) {
+                      setQuoteFormData({
+                        ...quoteFormData,
+                        clientId: c.id,
+                        companyName: c.legalName,
+                        clientName: c.contactPerson,
+                        address: c.billingAddress,
+                        phone: c.phone,
+                        email: c.email,
+                        gstin: c.gstin || '',
+                        placeOfSupply: c.placeOfSupply
+                      });
+                    }
+                  }}
+                  className="w-full px-3 py-2 rounded-xl border border-purple-200 bg-white font-medium"
+                >
+                  {clients.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.legalName} — Attn: {c.contactPerson} ({c.placeOfSupply})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Core Quotation Fields */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Quote Reference #</label>
+                  <input
+                    type="text"
+                    required
+                    value={quoteFormData.revisionCode}
+                    onChange={(e) => setQuoteFormData({ ...quoteFormData, revisionCode: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-mono font-bold text-purple-950"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Quote Date</label>
+                  <input
+                    type="date"
+                    required
+                    value={quoteFormData.date}
+                    onChange={(e) => setQuoteFormData({ ...quoteFormData, date: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Valid Until (30 Days)</label>
+                  <input
+                    type="date"
+                    required
+                    value={quoteFormData.validUntil}
+                    onChange={(e) => setQuoteFormData({ ...quoteFormData, validUntil: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200"
+                  />
+                </div>
+              </div>
+
+              {/* Subject Line & Service Category */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div className="sm:col-span-2">
+                  <label className="font-bold text-slate-700 block mb-1">Subject / Engagement Proposal</label>
+                  <input
+                    type="text"
+                    required
+                    value={quoteFormData.subject}
+                    onChange={(e) => setQuoteFormData({ ...quoteFormData, subject: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-medium"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Service Domain</label>
+                  <select
+                    value={quoteFormData.serviceCategory}
+                    onChange={(e) =>
+                      setQuoteFormData({
+                        ...quoteFormData,
+                        serviceCategory: e.target.value as QuotationRecord['serviceCategory']
+                      })
+                    }
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white"
+                  >
+                    <option value="Payroll">Payroll & Compliance</option>
+                    <option value="Setup">Business Setup</option>
+                    <option value="HR">HR & Hiring</option>
+                    <option value="Technology">Technology & Web</option>
+                    <option value="Operations">Operations & SOPs</option>
+                    <option value="Accounts">Accounts & Tax</option>
+                    <option value="Marketing">Digital Growth</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Engagement Model */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Billing Model</label>
+                  <select
+                    value={quoteFormData.quoteType}
+                    onChange={(e) =>
+                      setQuoteFormData({
+                        ...quoteFormData,
+                        quoteType: e.target.value as QuotationRecord['quoteType']
+                      })
+                    }
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white"
+                  >
+                    <option value="Per Employee">Per Employee (e.g. ₹100/emp/mo)</option>
+                    <option value="Monthly">Fixed Monthly Retainer</option>
+                    <option value="Fixed Price">Fixed Milestone Project</option>
+                    <option value="Mixed">Mixed (Setup + Monthly Retainer)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Place of Supply</label>
+                  <input
+                    type="text"
+                    value={quoteFormData.placeOfSupply}
+                    onChange={(e) => setQuoteFormData({ ...quoteFormData, placeOfSupply: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200"
+                  />
+                </div>
+              </div>
+
+              {/* Line Items Builder */}
+              <div className="space-y-2 pt-2 border-t border-slate-100">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-extrabold text-xs uppercase tracking-wider text-purple-950">
+                    Commercial Line Items
+                  </h4>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newItem: LineItem = {
+                        id: Date.now().toString(),
+                        description: 'Custom Consultancy Service / Operational Deliverable',
+                        quantity: 1,
+                        unit: 'Service',
+                        rate: 5000,
+                        billingFrequency: quoteFormData.quoteType === 'Per Employee' ? 'Monthly' : 'One-Time',
+                        discount: 0,
+                        amount: 5000
+                      };
+                      setQuoteFormData({
+                        ...quoteFormData,
+                        items: [...quoteFormData.items, newItem]
+                      });
+                    }}
+                    className="px-2.5 py-1 rounded-lg bg-purple-100 text-purple-900 hover:bg-purple-200 font-bold text-[11px] flex items-center gap-1 transition-colors"
+                  >
+                    <Plus className="w-3 h-3" />
+                    <span>Add Line Item</span>
+                  </button>
+                </div>
+
+                <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
+                  {quoteFormData.items.map((item, idx) => (
+                    <div
+                      key={item.id || idx}
+                      className="p-3 bg-slate-50 rounded-xl border border-slate-200 grid grid-cols-12 gap-2 items-center text-xs"
+                    >
+                      <div className="col-span-12 sm:col-span-5">
+                        <label className="text-[10px] text-slate-500 font-semibold block sm:hidden">Description</label>
+                        <input
+                          type="text"
+                          required
+                          value={item.description}
+                          onChange={(e) => {
+                            const updated = [...quoteFormData.items];
+                            updated[idx] = { ...item, description: e.target.value };
+                            setQuoteFormData({ ...quoteFormData, items: updated });
+                          }}
+                          placeholder="Line item description..."
+                          className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white"
+                        />
+                      </div>
+                      <div className="col-span-4 sm:col-span-2">
+                        <label className="text-[10px] text-slate-500 font-semibold block sm:hidden">Qty</label>
+                        <input
+                          type="number"
+                          min={1}
+                          required
+                          value={item.quantity}
+                          onChange={(e) => {
+                            const q = Number(e.target.value) || 0;
+                            const amt = q * (item.rate || 0);
+                            const updated = [...quoteFormData.items];
+                            updated[idx] = { ...item, quantity: q, amount: amt };
+                            setQuoteFormData({ ...quoteFormData, items: updated });
+                          }}
+                          className="w-full px-2 py-1.5 rounded-lg border border-slate-300 bg-white text-center font-bold"
+                        />
+                      </div>
+                      <div className="col-span-4 sm:col-span-2">
+                        <label className="text-[10px] text-slate-500 font-semibold block sm:hidden">Rate (₹)</label>
+                        <input
+                          type="number"
+                          min={0}
+                          required
+                          value={item.rate}
+                          onChange={(e) => {
+                            const r = Number(e.target.value) || 0;
+                            const amt = (item.quantity || 0) * r;
+                            const updated = [...quoteFormData.items];
+                            updated[idx] = { ...item, rate: r, amount: amt };
+                            setQuoteFormData({ ...quoteFormData, items: updated });
+                          }}
+                          className="w-full px-2 py-1.5 rounded-lg border border-slate-300 bg-white font-bold"
+                        />
+                      </div>
+                      <div className="col-span-3 sm:col-span-2 text-right font-black text-slate-900">
+                        ₹{(item.amount || item.quantity * item.rate).toLocaleString('en-IN')}
+                      </div>
+                      <div className="col-span-1 text-right">
+                        {quoteFormData.items.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = quoteFormData.items.filter((_, i) => i !== idx);
+                              setQuoteFormData({ ...quoteFormData, items: updated });
+                            }}
+                            className="p-1 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-slate-200"
+                            title="Remove line item"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Financial Calculation Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 pt-2 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Courtesy Discount (₹)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={quoteFormData.discount || 0}
+                    onChange={(e) => setQuoteFormData({ ...quoteFormData, discount: Number(e.target.value) || 0 })}
+                    className="w-full px-3 py-1.5 rounded-xl border border-slate-300 bg-white font-bold text-rose-700"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">GST Tax Rate</label>
+                  <select
+                    value={quoteFormData.taxRate || 0}
+                    onChange={(e) =>
+                      setQuoteFormData({
+                        ...quoteFormData,
+                        taxRate: Number(e.target.value),
+                        taxType: Number(e.target.value) > 0 ? 'cgst_sgst' : 'none'
+                      })
+                    }
+                    className="w-full px-3 py-1.5 rounded-xl border border-slate-300 bg-white"
+                  >
+                    <option value={0}>0% (Presently Exempt / Pre-Registration)</option>
+                    <option value={18}>18% (CGST 9% + SGST 9% / IGST)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Advance Required (₹)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={quoteFormData.advanceRequired || 0}
+                    onChange={(e) =>
+                      setQuoteFormData({ ...quoteFormData, advanceRequired: Number(e.target.value) || 0 })
+                    }
+                    className="w-full px-3 py-1.5 rounded-xl border border-slate-300 bg-white"
+                  />
+                </div>
+              </div>
+
+              {/* Payment Terms */}
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">Commercial Payment Terms</label>
+                <input
+                  type="text"
+                  value={quoteFormData.paymentTerms}
+                  onChange={(e) => setQuoteFormData({ ...quoteFormData, paymentTerms: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200"
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowQuoteModal(false)}
+                  className="px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold text-xs"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 rounded-xl bg-purple-900 hover:bg-purple-950 text-white font-bold text-xs shadow-md flex items-center gap-1.5"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>Save & Generate Quotation</span>
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ========================================================= */}
+      {/* MODAL: CREATE / EDIT INVOICE (Section 10 & 11)              */}
+      {/* ========================================================= */}
+      {showInvoiceModal && invoiceFormData && (
+        <div className="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-3xl w-full p-6 space-y-5 shadow-2xl border border-slate-200 max-h-[92vh] overflow-y-auto">
+            <div className="flex items-center justify-between pb-3 border-b border-slate-100">
+              <div>
+                <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full bg-rose-100 text-rose-800 text-[10px] font-bold uppercase tracking-wider mb-1">
+                  <Receipt className="w-3 h-3" />
+                  <span>Invoice Generator Studio</span>
+                </div>
+                <h3 className="font-black text-base text-slate-900">
+                  {invoiceFormData.invoiceNumber ? `Invoice ${invoiceFormData.invoiceNumber}` : 'Create New Tax Invoice'}
+                </h3>
+              </div>
+              <button
+                type="button"
+                onClick={() => setShowInvoiceModal(false)}
+                className="p-1.5 rounded-xl hover:bg-slate-100 text-slate-400 hover:text-slate-600 transition-colors"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveInvoiceModal} className="space-y-4 text-xs">
+              {/* Client Selection Row */}
+              <div className="bg-rose-50/70 p-3.5 rounded-2xl border border-rose-200 space-y-2">
+                <div className="flex items-center justify-between">
+                  <label className="font-bold text-rose-950">Select Client *</label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setShowInvoiceModal(false);
+                      setShowNewClientModal(true);
+                    }}
+                    className="text-[11px] font-bold text-rose-700 hover:underline"
+                  >
+                    + Add New Client
+                  </button>
+                </div>
+                <select
+                  value={invoiceFormData.clientId}
+                  onChange={(e) => {
+                    const c = clients.find((item) => item.id === e.target.value);
+                    if (c) {
+                      setInvoiceFormData({
+                        ...invoiceFormData,
+                        clientId: c.id,
+                        companyName: c.legalName,
+                        clientName: c.contactPerson,
+                        address: c.billingAddress,
+                        phone: c.phone,
+                        email: c.email,
+                        gstin: c.gstin || '',
+                        placeOfSupply: c.placeOfSupply
+                      });
+                    }
+                  }}
+                  className="w-full px-3 py-2 rounded-xl border border-rose-200 bg-white font-medium"
+                >
+                  {clients.map((c) => (
+                    <option key={c.id} value={c.id}>
+                      {c.legalName} — Attn: {c.contactPerson} ({c.placeOfSupply})
+                    </option>
+                  ))}
+                </select>
+              </div>
+
+              {/* Core Invoice Metadata */}
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Invoice Number *</label>
+                  <input
+                    type="text"
+                    required
+                    value={invoiceFormData.invoiceNumber}
+                    onChange={(e) => setInvoiceFormData({ ...invoiceFormData, invoiceNumber: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 font-mono font-bold text-purple-950"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Invoice Date *</label>
+                  <input
+                    type="date"
+                    required
+                    value={invoiceFormData.date}
+                    onChange={(e) => setInvoiceFormData({ ...invoiceFormData, date: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Due Date *</label>
+                  <input
+                    type="date"
+                    required
+                    value={invoiceFormData.dueDate}
+                    onChange={(e) => setInvoiceFormData({ ...invoiceFormData, dueDate: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Billing Period</label>
+                  <input
+                    type="text"
+                    value={invoiceFormData.billingPeriod}
+                    onChange={(e) => setInvoiceFormData({ ...invoiceFormData, billingPeriod: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200"
+                  />
+                </div>
+              </div>
+
+              {/* Quote Ref & Invoice Type */}
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Quotation Reference</label>
+                  <select
+                    value={invoiceFormData.quotationRef || ''}
+                    onChange={(e) => {
+                      const q = quotations.find((quote) => quote.revisionCode === e.target.value);
+                      if (q) {
+                        setInvoiceFormData({
+                          ...invoiceFormData,
+                          quotationRef: q.revisionCode,
+                          subject: `Invoice for ${q.subject}`,
+                          items: q.items.map((it) => ({ ...it }))
+                        });
+                      } else {
+                        setInvoiceFormData({ ...invoiceFormData, quotationRef: e.target.value });
+                      }
+                    }}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white"
+                  >
+                    <option value="">None / Standalone Invoice</option>
+                    {quotations.map((q) => (
+                      <option key={q.id} value={q.revisionCode}>
+                        {q.revisionCode} — {q.companyName}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Invoice Type</label>
+                  <select
+                    value={invoiceFormData.invoiceType}
+                    onChange={(e) =>
+                      setInvoiceFormData({
+                        ...invoiceFormData,
+                        invoiceType: e.target.value as InvoiceRecord['invoiceType']
+                      })
+                    }
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white"
+                  >
+                    <option value="Monthly Retainer">Monthly Retainer</option>
+                    <option value="Per-Employee Recurring">Per-Employee Recurring</option>
+                    <option value="Advance">Advance Milestone</option>
+                    <option value="Full">Full Project Invoice</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Status</label>
+                  <select
+                    value={invoiceFormData.status}
+                    onChange={(e) =>
+                      setInvoiceFormData({
+                        ...invoiceFormData,
+                        status: e.target.value as InvoiceRecord['status']
+                      })
+                    }
+                    className="w-full px-3 py-2 rounded-xl border border-slate-200 bg-white font-bold"
+                  >
+                    <option value="Draft">Draft</option>
+                    <option value="Issued">Issued</option>
+                    <option value="Partially Paid">Partially Paid</option>
+                    <option value="Paid">Paid</option>
+                    <option value="Overdue">Overdue</option>
+                  </select>
+                </div>
+              </div>
+
+              {/* Subject Line */}
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">Invoice Subject / Description</label>
+                <input
+                  type="text"
+                  required
+                  value={invoiceFormData.subject}
+                  onChange={(e) => setInvoiceFormData({ ...invoiceFormData, subject: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200 font-medium"
+                />
+              </div>
+
+              {/* Line Items Builder */}
+              <div className="space-y-2 pt-2 border-t border-slate-100">
+                <div className="flex items-center justify-between">
+                  <h4 className="font-extrabold text-xs uppercase tracking-wider text-rose-950">
+                    Billed Line Items
+                  </h4>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const newItem: LineItem = {
+                        id: Date.now().toString(),
+                        description: 'Professional Managed Services & Compliance',
+                        quantity: 1,
+                        unit: 'Month',
+                        rate: 15000,
+                        billingFrequency: 'Monthly',
+                        discount: 0,
+                        amount: 15000
+                      };
+                      setInvoiceFormData({
+                        ...invoiceFormData,
+                        items: [...invoiceFormData.items, newItem]
+                      });
+                    }}
+                    className="px-2.5 py-1 rounded-lg bg-rose-100 text-rose-900 hover:bg-rose-200 font-bold text-[11px] flex items-center gap-1 transition-colors"
+                  >
+                    <Plus className="w-3 h-3" />
+                    <span>Add Line Item</span>
+                  </button>
+                </div>
+
+                <div className="space-y-2 max-h-52 overflow-y-auto pr-1">
+                  {invoiceFormData.items.map((item, idx) => (
+                    <div
+                      key={item.id || idx}
+                      className="p-3 bg-slate-50 rounded-xl border border-slate-200 grid grid-cols-12 gap-2 items-center text-xs"
+                    >
+                      <div className="col-span-12 sm:col-span-5">
+                        <label className="text-[10px] text-slate-500 font-semibold block sm:hidden">Description</label>
+                        <input
+                          type="text"
+                          required
+                          value={item.description}
+                          onChange={(e) => {
+                            const updated = [...invoiceFormData.items];
+                            updated[idx] = { ...item, description: e.target.value };
+                            setInvoiceFormData({ ...invoiceFormData, items: updated });
+                          }}
+                          placeholder="Billed item description..."
+                          className="w-full px-2.5 py-1.5 rounded-lg border border-slate-300 bg-white"
+                        />
+                      </div>
+                      <div className="col-span-4 sm:col-span-2">
+                        <label className="text-[10px] text-slate-500 font-semibold block sm:hidden">Qty</label>
+                        <input
+                          type="number"
+                          min={1}
+                          required
+                          value={item.quantity}
+                          onChange={(e) => {
+                            const q = Number(e.target.value) || 0;
+                            const amt = q * (item.rate || 0);
+                            const updated = [...invoiceFormData.items];
+                            updated[idx] = { ...item, quantity: q, amount: amt };
+                            setInvoiceFormData({ ...invoiceFormData, items: updated });
+                          }}
+                          className="w-full px-2 py-1.5 rounded-lg border border-slate-300 bg-white text-center font-bold"
+                        />
+                      </div>
+                      <div className="col-span-4 sm:col-span-2">
+                        <label className="text-[10px] text-slate-500 font-semibold block sm:hidden">Rate (₹)</label>
+                        <input
+                          type="number"
+                          min={0}
+                          required
+                          value={item.rate}
+                          onChange={(e) => {
+                            const r = Number(e.target.value) || 0;
+                            const amt = (item.quantity || 0) * r;
+                            const updated = [...invoiceFormData.items];
+                            updated[idx] = { ...item, rate: r, amount: amt };
+                            setInvoiceFormData({ ...invoiceFormData, items: updated });
+                          }}
+                          className="w-full px-2 py-1.5 rounded-lg border border-slate-300 bg-white font-bold"
+                        />
+                      </div>
+                      <div className="col-span-3 sm:col-span-2 text-right font-black text-slate-900">
+                        ₹{(item.amount || item.quantity * item.rate).toLocaleString('en-IN')}
+                      </div>
+                      <div className="col-span-1 text-right">
+                        {invoiceFormData.items.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => {
+                              const updated = invoiceFormData.items.filter((_, i) => i !== idx);
+                              setInvoiceFormData({ ...invoiceFormData, items: updated });
+                            }}
+                            className="p-1 text-slate-400 hover:text-rose-600 rounded-lg hover:bg-slate-200"
+                            title="Remove line item"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Financial Calculation Row */}
+              <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 pt-2 bg-slate-50 p-3.5 rounded-2xl border border-slate-200">
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Courtesy Discount (₹)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={invoiceFormData.discount || 0}
+                    onChange={(e) => setInvoiceFormData({ ...invoiceFormData, discount: Number(e.target.value) || 0 })}
+                    className="w-full px-3 py-1.5 rounded-xl border border-slate-300 bg-white font-bold text-rose-700"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">GST Tax Rate</label>
+                  <select
+                    value={invoiceFormData.taxRate || 0}
+                    onChange={(e) =>
+                      setInvoiceFormData({
+                        ...invoiceFormData,
+                        taxRate: Number(e.target.value),
+                        taxType: Number(e.target.value) > 0 ? 'cgst_sgst' : 'none'
+                      })
+                    }
+                    className="w-full px-3 py-1.5 rounded-xl border border-slate-300 bg-white"
+                  >
+                    <option value={0}>0% (Presently Exempt / Pre-Registration)</option>
+                    <option value={18}>18% (CGST 9% + SGST 9% / IGST)</option>
+                  </select>
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">Advance Received (₹)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={invoiceFormData.advancePaid || 0}
+                    onChange={(e) =>
+                      setInvoiceFormData({ ...invoiceFormData, advancePaid: Number(e.target.value) || 0 })
+                    }
+                    className="w-full px-3 py-1.5 rounded-xl border border-slate-300 bg-white font-bold text-emerald-800"
+                  />
+                </div>
+                <div>
+                  <label className="font-bold text-slate-700 block mb-1">TDS Deducted (₹)</label>
+                  <input
+                    type="number"
+                    min={0}
+                    value={invoiceFormData.tdsDeducted || 0}
+                    onChange={(e) =>
+                      setInvoiceFormData({ ...invoiceFormData, tdsDeducted: Number(e.target.value) || 0 })
+                    }
+                    className="w-full px-3 py-1.5 rounded-xl border border-slate-300 bg-white"
+                  />
+                </div>
+              </div>
+
+              {/* Payment Terms */}
+              <div>
+                <label className="font-bold text-slate-700 block mb-1">Payment Terms & Instructions</label>
+                <input
+                  type="text"
+                  value={invoiceFormData.paymentTerms}
+                  onChange={(e) => setInvoiceFormData({ ...invoiceFormData, paymentTerms: e.target.value })}
+                  className="w-full px-3 py-2 rounded-xl border border-slate-200"
+                />
+              </div>
+
+              {/* Action Buttons */}
+              <div className="flex items-center justify-end gap-3 pt-3 border-t border-slate-100">
+                <button
+                  type="button"
+                  onClick={() => setShowInvoiceModal(false)}
+                  className="px-4 py-2.5 rounded-xl border border-slate-200 hover:bg-slate-100 text-slate-700 font-bold text-xs"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="px-6 py-2.5 rounded-xl bg-purple-900 hover:bg-purple-950 text-white font-bold text-xs shadow-md flex items-center gap-1.5"
+                >
+                  <Check className="w-4 h-4" />
+                  <span>Save & Generate Invoice</span>
+                </button>
+              </div>
+            </form>
           </div>
         </div>
       )}
