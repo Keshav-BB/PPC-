@@ -64,7 +64,7 @@ export default function TimelineSection() {
             From Idea → Running Business
           </h2>
           <p className="mt-3 text-slate-600 text-sm sm:text-base leading-relaxed">
-            How People Point systematically transforms your business idea into an execution-ready, compliant, and operating business machine in 30 days.
+            How People Point systematically transforms your business idea into an execution-ready operating business through a structured 30-Day Business Launch Framework.
           </p>
         </div>
 

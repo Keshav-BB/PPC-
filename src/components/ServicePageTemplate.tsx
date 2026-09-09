@@ -245,7 +245,7 @@ export default function ServicePageTemplate({ solution }: ServicePageTemplatePro
             <div>
               <div className="flex justify-between items-center text-xs">
                 <span className="px-2.5 py-0.5 rounded-full bg-purple-100 text-brand-purple font-bold">
-                  Client Success Highlight
+                  Representative Scenario Focus
                 </span>
                 <span className="text-slate-400 font-medium">{solution.caseStudyHighlight.industry}</span>
               </div>
@@ -263,7 +263,7 @@ export default function ServicePageTemplate({ solution }: ServicePageTemplatePro
                   <p className="text-slate-600">{solution.caseStudyHighlight.solution}</p>
                 </div>
                 <div>
-                  <strong className="text-emerald-700 block font-semibold">Measurable Result:</strong>
+                  <strong className="text-emerald-700 block font-semibold">Illustrative Scenario Outcome:</strong>
                   <p className="text-slate-900 font-medium">{solution.caseStudyHighlight.result}</p>
                 </div>
               </div>
@@ -274,7 +274,7 @@ export default function ServicePageTemplate({ solution }: ServicePageTemplatePro
                 href="/case-studies"
                 className="text-xs font-bold text-brand-purple hover:text-brand-pink flex items-center gap-1"
               >
-                <span>Read More Client Stories</span>
+                <span>Explore All Transformation Scenarios</span>
                 <ArrowRight className="w-3.5 h-3.5" />
               </Link>
             </div>

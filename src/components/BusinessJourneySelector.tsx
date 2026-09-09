@@ -38,8 +38,8 @@ const journeys: JourneyItem[] = [
     response: 'Business Setup & Launch Support (Business Launch 360°)',
     solutionLink: '/solutions/business-setup',
     highlightPoints: [
-      'Pvt Ltd / LLP incorporation within 7–14 days',
-      'Statutory registrations: GST, MSME, PAN/TAN, PT',
+      'Typical incorporation timeline: approximately 7-14 working days after complete documentation, subject to MCA and applicable government processing.',
+      'Applicable statutory registrations may include GST, MSME/Udyam, PAN/TAN, PT and others based on entity type, location and statutory eligibility.',
       'Launch checklist and operating structure',
       'Turnkey handover to initial operations'
     ]
@@ -222,12 +222,12 @@ export default function BusinessJourneySelector({ onOpenConsultation, onOpenChat
               </div>
 
               <h3 className="text-xl sm:text-3xl font-black text-white leading-tight">
-                People Point Response: <br />
+                Recommended People Point Support: <br />
                 <span className="gradient-text">{activeJourney.response}</span>
               </h3>
 
               <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 text-xs sm:text-sm text-slate-300">
-                <strong className="text-white block mb-1">Your High-Intent Need:</strong>
+                <strong className="text-white block mb-1">Your Current Requirement:</strong>
                 {activeJourney.needs}
               </div>
 

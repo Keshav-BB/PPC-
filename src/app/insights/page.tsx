@@ -115,6 +115,12 @@ export default function InsightsPage() {
               </div>
             ))}
           </div>
+
+          <div className="mt-6 p-4 rounded-2xl bg-slate-50 border border-slate-200/80 text-center">
+            <p className="text-[11px] sm:text-xs text-slate-500 leading-relaxed">
+              <span className="font-semibold text-slate-700">Disclaimer:</span> For general informational use only. Requirements vary by entity, jurisdiction and circumstances. Professional review may be required before implementation.
+            </p>
+          </div>
         </div>
 
         {/* Practical Business Articles */}

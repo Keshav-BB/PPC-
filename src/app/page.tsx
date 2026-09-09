@@ -36,7 +36,7 @@ import TeamSection from '@/components/TeamSection';
 import AssessmentWidget from '@/components/AssessmentWidget';
 import LeadMagnetModal from '@/components/LeadMagnetModal';
 import { packages, engagementModels } from '@/data/packages';
-import { caseStudies, testimonials } from '@/data/caseStudies';
+import { caseStudies } from '@/data/caseStudies';
 import { generalFaqs } from '@/data/faqs';
 import { leadMagnets, LeadMagnet } from '@/data/leadMagnets';
 
@@ -120,19 +120,19 @@ export default function HomePage() {
             {/* Trust Highlights Strip */}
             <div className="mt-12 pt-8 border-t border-slate-200/80 grid grid-cols-2 md:grid-cols-4 gap-4 text-left max-w-4xl mx-auto">
               <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
-                <span className="block text-xl sm:text-2xl font-black text-purple-900">One Partner</span>
-                <span className="text-xs text-slate-500 font-medium">No disconnected vendors</span>
+                <span className="block text-xl sm:text-2xl font-black text-purple-900">One Partner.</span>
+                <span className="text-xs text-slate-500 font-medium">No Disconnected Vendors.</span>
               </div>
               <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
-                <span className="block text-xl sm:text-2xl font-black text-rose-600">Accountable SPOC</span>
-                <span className="text-xs text-slate-500 font-medium">Direct leadership contact</span>
+                <span className="block text-xl sm:text-2xl font-black text-rose-600">Accountable SPOC.</span>
+                <span className="text-xs text-slate-500 font-medium">Clear Ownership.</span>
               </div>
               <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
-                <span className="block text-xl sm:text-2xl font-black text-slate-900">People + Tech</span>
-                <span className="text-xs text-slate-500 font-medium">End-to-end execution</span>
+                <span className="block text-xl sm:text-2xl font-black text-slate-900">People + Process + Technology.</span>
+                <span className="text-xs text-slate-500 font-medium">End-to-End Execution.</span>
               </div>
               <div className="p-4 rounded-2xl bg-white border border-slate-200 shadow-xs">
-                <span className="block text-xl sm:text-2xl font-black text-emerald-600">30-Day Launch</span>
+                <span className="block text-xl sm:text-2xl font-black text-emerald-600">30-Day Business Launch Framework</span>
                 <span className="text-xs text-slate-500 font-medium">Turnkey business readiness</span>
               </div>
             </div>
@@ -204,13 +204,13 @@ export default function HomePage() {
                 Business Launch 360°
               </h2>
               <p className="text-base sm:text-lg text-slate-300 leading-relaxed">
-                Move from business idea to a registered, compliant, staffed, and operating business in 30 days without juggling six independent agencies.
+                A structured launch across registration, HR, digital presence, SOPs and growth, with timelines dependent on scope and external approvals, without juggling six independent agencies.
               </p>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2">
                 <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-1">
                   <div className="text-rose-400 font-bold text-sm">01. Legal Incorporation</div>
-                  <p className="text-xs text-slate-300">Pvt Ltd / LLP, DIN/DSC, GST, MSME, Professional Tax, bank resolutions.</p>
+                  <p className="text-xs text-slate-300">Pvt Ltd / LLP, DIN/DSC, GST, MSME, Professional Tax, bank resolutions (where applicable).</p>
                 </div>
                 <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-1">
                   <div className="text-purple-300 font-bold text-sm">02. Foundational HR</div>
@@ -218,7 +218,7 @@ export default function HomePage() {
                 </div>
                 <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-1">
                   <div className="text-cyan-300 font-bold text-sm">03. Digital Storefront & CRM</div>
-                  <p className="text-xs text-slate-300">High-converting website, domain email, and CRM with WhatsApp lead alerts.</p>
+                  <p className="text-xs text-slate-300">Conversion-focused website, domain email, and CRM with WhatsApp lead alerts.</p>
                 </div>
                 <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-1">
                   <div className="text-amber-300 font-bold text-sm">04. Core SOPs & Launch Plan</div>
@@ -250,7 +250,7 @@ export default function HomePage() {
               <div className="flex items-center justify-between pb-4 border-b border-white/10">
                 <span className="text-xs font-bold uppercase tracking-wider text-rose-300">Turnkey Engagement</span>
                 <span className="text-xs font-semibold px-2.5 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300">
-                  Fixed 30-Day Sprint
+                  Structured Turnkey Launch Program
                 </span>
               </div>
 
@@ -261,15 +261,15 @@ export default function HomePage() {
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-rose-400 shrink-0" />
-                  <span>Zero vendor blame games or coordination overhead</span>
+                  <span>No multi-vendor coordination burden</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-rose-400 shrink-0" />
-                  <span>Complete ownership from Day 1 to running status</span>
+                  <span>Coordinated execution from Day 1 through operational handover</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <CheckCircle2 className="w-4 h-4 text-rose-400 shrink-0" />
-                  <span>60-Day post-launch operational warranty & support</span>
+                  <span>60-Day Post-Launch Support Period</span>
                 </div>
               </div>
 
@@ -292,10 +292,10 @@ export default function HomePage() {
               Why Companies Partner With Us
             </span>
             <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">
-              Built Different. Focused on Execution.
+              Built Differently. Focused on Execution.
             </h2>
             <p className="mt-3 text-slate-600 text-sm sm:text-base leading-relaxed">
-              We aren’t traditional consultants who deliver PowerPoint decks and leave. We are implementation partners who construct and run the operating machinery of your company.
+              We combine strategic advisory with hands-on implementation. We construct and run the operating machinery of your company.
             </p>
           </div>
 
@@ -336,7 +336,7 @@ export default function HomePage() {
               </div>
               <h3 className="text-lg font-bold text-slate-900">Single Point of Contact (SPOC)</h3>
               <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                Our clients get a designated Account SPOC who coordinates requirements and internal team delivery, guaranteeing prompt response times.
+                Our clients get a designated Account SPOC who coordinates requirements and internal team delivery, supported by defined communication standards and agreed response-time targets.
               </p>
             </div>
 
@@ -354,9 +354,9 @@ export default function HomePage() {
               <div className="w-12 h-12 rounded-2xl bg-slate-200 text-slate-900 flex items-center justify-center font-bold">
                 06
               </div>
-              <h3 className="text-lg font-bold text-slate-900">Zero Unverifiable Claims</h3>
+              <h3 className="text-lg font-bold text-slate-900">Transparent Scope & Measurable Delivery</h3>
               <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                We focus strictly on verifiable results, rigorous compliance, and transparent deliverables rather than inflated marketing slogans.
+                We focus strictly on agreed deliverables, rigorous compliance, and transparent scopes rather than inflated marketing slogans.
               </p>
             </div>
           </div>
@@ -468,7 +468,7 @@ export default function HomePage() {
                 Proven Sector Experience
               </span>
               <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">
-                Industries We Genuinely Support
+                Industries We Support
               </h2>
               <p className="mt-2 text-slate-600 text-sm sm:text-base">
                 We only focus on industries where our cross-functional team has direct operational and statutory track records.
@@ -511,13 +511,13 @@ export default function HomePage() {
           <div className="flex flex-col md:flex-row md:items-end justify-between mb-12 gap-4">
             <div className="max-w-2xl">
               <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-emerald-100 text-emerald-800 text-xs font-bold uppercase tracking-wider mb-2">
-                Real Client Results
+                Business Transformation Scenarios
               </span>
               <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">
                 Case Studies: Challenge to Result
               </h2>
               <p className="mt-2 text-slate-600 text-sm sm:text-base">
-                Verifiable outcomes achieved through People Point’s integrated People + Process + Technology model.
+                Representative examples showing how People Point can approach common People, Process and Technology challenges.
               </p>
             </div>
             <Link
@@ -561,7 +561,7 @@ export default function HomePage() {
 
                   <div className="pt-2">
                     <div className="text-[11px] font-bold text-slate-400 uppercase tracking-wider mb-2">
-                      Key Outcomes:
+                      Illustrative Potential Outcomes:
                     </div>
                     <ul className="space-y-1.5">
                       {cs.results.map((res, i) => (
@@ -582,49 +582,6 @@ export default function HomePage() {
                     <span>Read Full Story</span>
                     <ArrowRight className="w-3.5 h-3.5" />
                   </Link>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* 14: TESTIMONIALS */}
-      <section className="py-16 sm:py-24 bg-white border-b border-slate-200">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="text-center max-w-3xl mx-auto mb-14">
-            <span className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-purple-50 text-purple-800 text-xs font-bold uppercase tracking-wider mb-2">
-              Client Endorsements
-            </span>
-            <h2 className="text-2xl sm:text-4xl font-black text-slate-900 tracking-tight">
-              Trusted by Founders and Managing Directors
-            </h2>
-            <p className="mt-3 text-slate-600 text-sm sm:text-base leading-relaxed">
-              Genuine feedback from leaders who rely on People Point for their business infrastructure.
-            </p>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-            {testimonials.map((t, idx) => (
-              <div
-                key={idx}
-                className="p-6 rounded-3xl bg-slate-50 border border-slate-200 flex flex-col justify-between hover:bg-white hover:shadow-card transition-all"
-              >
-                <div>
-                  <div className="flex items-center gap-1 text-amber-400 mb-3">
-                    {[...Array(t.rating)].map((_, i) => (
-                      <Star key={i} className="w-4 h-4 fill-amber-400 text-amber-400" />
-                    ))}
-                  </div>
-                  <p className="text-xs text-slate-700 leading-relaxed italic mb-4">
-                    “{t.feedback}”
-                  </p>
-                </div>
-
-                <div className="pt-3 border-t border-slate-200">
-                  <div className="text-xs font-bold text-slate-900">{t.name}</div>
-                  <div className="text-[11px] text-slate-500">{t.designation}, {t.company}</div>
-                  <div className="text-[10px] font-semibold text-rose-600 mt-1">{t.service}</div>
                 </div>
               </div>
             ))}

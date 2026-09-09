@@ -69,10 +69,10 @@ export default function IndustriesPage() {
             <span>Targeted Industry Expertise</span>
           </div>
           <h1 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
-            Industries We Genuinely Support
+            Industries We Support
           </h1>
           <p className="mt-4 text-base text-slate-600 leading-relaxed">
-            Every industry has unique statutory regulations, operational handovers, and compliance nuances. Here are the sectors where our partners have deep, verified track records.
+            Every industry has unique statutory regulations, operational handovers, and compliance nuances. Here are the sectors where our team brings practical operational and compliance experience.
           </p>
         </div>
 

@@ -94,7 +94,7 @@ export default function CaseStudiesPage() {
               {/* Measurable Results */}
               <div className="p-6 rounded-2xl bg-emerald-50/60 border border-emerald-200 space-y-3">
                 <div className="text-xs font-bold uppercase tracking-wider text-emerald-800">
-                  Measurable Business Outcomes:
+                  Illustrative Potential Outcomes:
                 </div>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 pt-1">
                   {cs.results.map((res, i) => (

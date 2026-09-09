@@ -134,9 +134,9 @@ export default function SolutionsGrid({ onOpenConsultation }: SolutionsGridProps
 
               <div className="mt-4 p-3 rounded-2xl bg-white/10 text-xs text-slate-200 space-y-1">
                 <div className="font-semibold text-white">Why founders love it:</div>
-                <div>• Zero vendor coordination stress</div>
+                <div>• No multi-vendor coordination burden</div>
                 <div>• Single Point of Contact (SPOC) accountability</div>
-                <div>• Execution in 30 working days</div>
+                <div>• Typical implementation: approximately 3-4 weeks, subject to final scope, documentation readiness, statutory approvals and third-party dependencies.</div>
               </div>
             </div>
 

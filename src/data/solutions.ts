@@ -31,7 +31,7 @@ export const solutions: SolutionItem[] = [
     title: 'Business Setup & Registration',
     shortTitle: 'Business Setup',
     headline: 'Start Your Business With the Right Foundation.',
-    subheadline: 'From entity structuring and incorporation to initial operations, we transform business ideas into legally solid, running enterprises.',
+    subheadline: 'From entity structuring and incorporation to initial operations, we help founders establish compliant, execution-ready businesses.',
     iconName: 'Building2',
     category: 'Start',
     painPoints: [
@@ -152,7 +152,7 @@ export const solutions: SolutionItem[] = [
     title: 'Payroll & Compliance',
     shortTitle: 'Payroll & Compliance',
     headline: 'Accurate Payroll. Structured Compliance.',
-    subheadline: 'Zero-defect monthly payroll processing, statutory deductions (PF, ESI, PT, TDS), automated payslips, and compliance peace-of-mind.',
+    subheadline: 'Structured, review-controlled monthly payroll processing supported by validation checks, statutory computations and reconciliation controls.',
     iconName: 'Receipt',
     category: 'Manage',
     painPoints: [
@@ -162,15 +162,14 @@ export const solutions: SolutionItem[] = [
       'Lack of a unified HRMS portal for employees to access payslips and tax sheets.'
     ],
     howWeHelp: [
-      'Automated, error-free monthly payroll runs with built-in statutory computations.',
-      'Punctual monthly PF, ESI, and PT return preparation and challan generation.',
+      'Technology-assisted monthly payroll processing with built-in statutory calculations and defined review controls.',
+      'Punctual monthly PF, ESI, and PT return preparation and challan generation (where applicable).',
       'Employee self-service setup for digital payslips and Form 16 / tax computation.',
       'Multi-currency / US-India cross-border payroll coordination with strict scope boundaries.'
     ],
     servicesIncluded: [
       'Monthly Payroll Processing & Salary Register Preparation',
-      'Provident Fund (PF) & Employee State Insurance (ESI) Return Filings',
-      'Professional Tax (PT) Deductions & Local Remittances',
+      'PF, ESI, PT and other payroll-related statutory support where applicable to the client establishment and employee population',
       'TDS on Salary (Section 192) Computation & Form 24Q Support',
       'Digital Payslip Generation & Employee Query Support',
       'Cloud HRMS Implementation (GreytHR, Keka, Zoho People, or Custom)',
@@ -394,7 +393,7 @@ export const solutions: SolutionItem[] = [
     title: 'Digital Marketing & Growth',
     shortTitle: 'Digital Growth',
     headline: 'Turn Marketing Activity Into Measurable Business Growth.',
-    subheadline: 'Performance advertising (Meta & Google Ads), conversion funnel optimization, SEO authority, and measurable revenue generation.',
+    subheadline: 'Performance advertising (Meta & Google Ads), conversion funnel optimization, SEO authority, and measurable lead generation, attribution and campaign-performance visibility.',
     iconName: 'TrendingUp',
     category: 'Grow',
     painPoints: [
@@ -405,14 +404,14 @@ export const solutions: SolutionItem[] = [
     ],
     howWeHelp: [
       'Data-driven performance campaigns on Meta (Facebook/Instagram) and Google Search.',
-      'High-converting landing pages built with clear value propositions and strong CTAs.',
+      'Conversion-focused landing pages built with clear value propositions and strong CTAs.',
       'Search Engine Optimization (SEO) targeting high-intent commercial keywords.',
       'End-to-end UTM attribution connecting lead sources directly to closed sales.'
     ],
     servicesIncluded: [
       'Growth Strategy & Target Audience Profiling',
       'Performance Marketing (Meta Ads & Google Ads Management)',
-      'High-Converting Landing Page Design & A/B Testing',
+      'Conversion-Focused Landing Page Design & A/B Testing',
       'Technical & Commercial SEO Strategy',
       'Lead Generation Funnel Architecture & Nurture Sequences',
       'Campaign Analytics, ROAS Tracking & Executive Growth Dashboards'

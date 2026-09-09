@@ -14,23 +14,23 @@ export const packages: PackageItem[] = [
   {
     id: 'launch-360',
     name: 'Business Launch 360°',
-    tagline: 'Our Flagship Turnkey Offering — Move from Idea to Running Business in 30 Days.',
+    tagline: 'Our Flagship Turnkey Offering — 30-Day Business Launch Framework.',
     bestFor: 'First-time founders and entrepreneurs who need an execution-ready business without coordinating 6 different vendors.',
     isPopular: true,
     indicativeScope: [
       'Company Incorporation & Entity Structuring (Pvt Ltd / LLP)',
-      'Statutory Registrations: GST, MSME, PAN/TAN, PT',
+      'Statutory Registrations: GST, MSME, PAN/TAN, PT (where applicable)',
       'Banking Resolutions & Financial Setup',
       'Foundational HR Structure: Employment Contracts, Policies & Onboarding Deck',
-      'High-Converting Corporate Website & Professional Email Setup',
+      'Conversion-Focused Corporate Website & Professional Email Setup',
       'Core Process Blueprint & Master Operating Checklist',
       'Initial Lead Generation & Growth Roadmap'
     ],
-    timeline: '3 to 4 Weeks (indicative; statutory registration depends on MCA & government department approvals)',
-    engagementType: 'Turnkey Project with 60-day Post-Launch Support',
+    timeline: '30-Day Business Launch Framework — typical implementation approximately 3-4 weeks, subject to agreed scope, complete documentation, statutory approvals, banking, technology requirements and third-party dependencies',
+    engagementType: 'Structured Turnkey Launch Program with 60-Day Post-Launch Support Period',
     deliverables: [
       'Incorporation Certificate & Registered Compliance Kit',
-      'Live, High-Converting Business Website & Domain Setup',
+      'Live, Conversion-Focused Business Website & Domain Setup',
       'Standard Employment Agreements & Onboarding Pack',
       'Dedicated Account SPOC coordinating all internal delivery'
     ]
@@ -80,11 +80,11 @@ export const packages: PackageItem[] = [
   {
     id: 'payroll-compliance',
     name: 'Payroll & Compliance',
-    tagline: 'Precision Payroll with Ironclad Statutory Adherence.',
+    tagline: 'Structured Payroll & Proactive Statutory Compliance.',
     bestFor: 'Employers of any size looking for structured payroll processing and proactive PF/ESI/PT/TDS compliance.',
     indicativeScope: [
       'Monthly Payroll Run & Salary Computations',
-      'PF, ESI & Professional Tax Challan Generation & Filings',
+      'PF, ESI & Professional Tax Challan Generation & Filings (where applicable)',
       'TDS on Salary Deductions & Form 24Q Support',
       'Automated Digital Payslip Distribution',
       'Year-End Form 16 Preparation',

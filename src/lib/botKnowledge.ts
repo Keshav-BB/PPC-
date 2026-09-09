@@ -28,9 +28,9 @@ export const APPROVED_PACKAGES: Record<string, BotRecommendation> = {
   'launch-360': {
     packageId: 'launch-360',
     packageName: 'Business Launch 360°',
-    tagline: 'Our Flagship Turnkey Offering — Move from Idea to Running Business in 30 Days.',
-    timeline: '3 to 4 Weeks (indicative; statutory registration depends on MCA & government department approvals)',
-    engagementType: 'Turnkey Project with 60-day Post-Launch Support',
+    tagline: 'Our Flagship Turnkey Offering — 30-Day Business Launch Framework.',
+    timeline: '30-Day Business Launch Framework — typical implementation approximately 3-4 weeks, subject to agreed scope, complete documentation, statutory approvals, banking, technology requirements and third-party dependencies',
+    engagementType: 'Structured Turnkey Launch Program with 60-Day Post-Launch Support Period',
     whyFit: 'Best for founders with an idea or pre-launch venture who need incorporation, statutory filings, HR contracts, a live web application, and operating checklists under one roof.',
     primaryPillars: ['Business Setup', 'People & HR', 'Payroll & Compliance', 'Technology', 'Operations SOPs']
   },
@@ -55,10 +55,10 @@ export const APPROVED_PACKAGES: Record<string, BotRecommendation> = {
   'payroll-compliance': {
     packageId: 'payroll-compliance',
     packageName: 'Payroll & Compliance',
-    tagline: 'Precision Payroll with Ironclad Statutory Adherence.',
+    tagline: 'Structured Payroll & Proactive Statutory Compliance.',
     timeline: 'Monthly Cycle (Standard Cutoff Schedule)',
     engagementType: 'Monthly Managed Retainer (Per-Employee or Tiered)',
-    whyFit: 'Essential for businesses needing structured salary computation, digital payslips, and punctual PF, ESI, Professional Tax & TDS compliance.',
+    whyFit: 'Essential for businesses needing structured salary computation, digital payslips, and punctual PF, ESI, Professional Tax & TDS compliance (where applicable).',
     primaryPillars: ['Payroll & Compliance', 'Accounts & Backend']
   },
   'digital-setup': {

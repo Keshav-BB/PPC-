@@ -41,10 +41,10 @@ export default function ContactPage() {
         {/* Header */}
         <div className="text-center max-w-3xl mx-auto mb-16">
           <span className="text-xs font-bold uppercase tracking-wider text-purple-800 block mb-2">
-            Direct Leadership Access
+            Business Consultation & Client Support
           </span>
           <h1 className="text-3xl sm:text-5xl font-black text-slate-900 tracking-tight">
-            Speak With Our Partners
+            Speak With Our Business Team
           </h1>
           <p className="mt-4 text-base text-slate-600 leading-relaxed">
             Have a question about company setup, employee payroll, custom software, or operations? Our Single Point of Contact (SPOC) is ready to help.
@@ -65,7 +65,7 @@ export default function ContactPage() {
                   Client Operations & Execution
                 </h3>
                 <div className="text-xs font-bold text-rose-400 mt-0.5">
-                  Dedicated Partner & SPOC
+                  Dedicated Client SPOC
                 </div>
                 <p className="text-xs text-slate-300 mt-2.5 leading-relaxed">
                   Acts as your single point of contact, orchestrating all internal teams across legal, human resources, payroll, tech, and operations.
@@ -101,7 +101,7 @@ export default function ContactPage() {
                   <a href="mailto:peoplepointconsultant@gmail.com" className="text-sm font-bold text-slate-900 hover:text-purple-800">
                     peoplepointconsultant@gmail.com
                   </a>
-                  <span className="block text-[11px] text-slate-500 mt-0.5">Direct response within 4 hours</span>
+                  <span className="block text-[11px] text-slate-500 mt-0.5">Target Response: Within 4 Business Hours</span>
                 </div>
               </div>
 
@@ -142,7 +142,7 @@ export default function ContactPage() {
               Send a Direct Message
             </h2>
             <p className="text-xs text-slate-500 mb-6">
-              Our partners review incoming messages multiple times a day.
+              Your enquiry is reviewed and routed to the appropriate People Point SPOC or functional team.
             </p>
 
             {submitted ? (
@@ -158,7 +158,7 @@ export default function ContactPage() {
                   onClick={() => setSubmitted(false)}
                   className="text-xs font-bold text-purple-800 hover:underline"
                 >
-                  Send another inquiry
+                  Send another enquiry
                 </button>
               </div>
             ) : (
@@ -263,7 +263,7 @@ export default function ContactPage() {
                       className="mt-0.5 h-4 w-4 rounded border-slate-300 text-purple-700 focus:ring-purple-600 cursor-pointer"
                     />
                     <label htmlFor="consent-contact" className="text-[11px] text-slate-500 leading-snug cursor-pointer select-none">
-                      I agree to the <Link href="/terms" target="_blank" className="underline hover:text-purple-700 font-semibold">Terms of Service</Link> and <Link href="/privacy" target="_blank" className="underline hover:text-purple-700 font-semibold">Privacy Policy</Link>, and consent to being contacted by People Point via Phone, WhatsApp, or Email for advisory purposes.
+                      By submitting this form, you agree to People Point processing the information provided to respond to your enquiry. View <Link href="/privacy" target="_blank" className="underline hover:text-purple-700 font-semibold">Privacy Policy</Link>.
                     </label>
                   </div>
 
@@ -272,7 +272,7 @@ export default function ContactPage() {
                       type="submit"
                       className="w-full py-3 rounded-xl bg-gradient-to-r from-purple-800 to-rose-600 hover:opacity-95 text-white font-bold text-xs sm:text-sm shadow-md transition-all"
                     >
-                      Send Inquiry to Partner SPOC
+                      Send Enquiry
                     </button>
                   </div>
               </form>

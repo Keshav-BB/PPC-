@@ -53,9 +53,9 @@ export const caseStudies: CaseStudy[] = [
       'Conducted employee induction workshops to align center staff with quality standards'
     ],
     results: [
-      'Employee turnover dropped by 40% within the first 6 months of structured reviews',
-      'Patient processing wait-times decreased by 25% following standard operating procedures',
-      'Management received transparent weekly MIS dashboards on branch throughput'
+      'Substantial stabilization of frontline staff retention following structured performance reviews',
+      'Measurable decrease in patient intake wait times and process bottlenecks following standard operating procedures',
+      'Management established transparent weekly operational reporting and branch throughput visibility'
     ],
     quote: {
       text: 'Having written SOPs and clear role KPIs transformed our clinics from disorganized daily firefighting to smooth, professional operations.',
@@ -77,49 +77,14 @@ export const caseStudies: CaseStudy[] = [
       'Configured automated WhatsApp notifications for abandoned carts and order status'
     ],
     results: [
-      'Identified and recovered ₹4.2 Lakhs in previously untracked marketplace deductions',
-      'Cost-per-acquisition (CPA) on Meta campaigns improved by 34% with optimized funnels',
-      'Audited financials delivered 3 months ahead of statutory filing deadlines'
+      'Systematic identification and recovery of untracked marketplace deductions and reconciliation gaps',
+      'Improved efficiency and attribution clarity across digital acquisition campaigns through structured landing funnels',
+      'Financial records and documentation prepared well ahead of statutory filing timelines'
     ],
     quote: {
       text: 'People Point provided both the backend accounting discipline and the digital marketing engine we needed to scale sustainably.',
       author: 'Co-Founder & CEO',
       role: 'D2C Retail'
     }
-  }
-];
-
-export const testimonials = [
-  {
-    name: 'Rajesh Subramanian',
-    designation: 'Founder & CEO',
-    company: 'Apex Logistics Tech',
-    service: 'Business Launch 360° & Payroll',
-    feedback: 'People Point is the only partner that genuinely combines company registration, hiring documentation, and tech into one cohesive execution plan. They saved us months of wasted effort.',
-    rating: 5
-  },
-  {
-    name: 'Dr. Meera Krishnan',
-    designation: 'Managing Director',
-    company: 'ProHealth Diagnostic Centers',
-    service: 'HR Operations & Process SOPs',
-    feedback: 'The People Point leadership team brought incredible structure to our 35-person team. The KRA/KPI framework and SOPs gave our managers complete clarity and accountability.',
-    rating: 5
-  },
-  {
-    name: 'Arun Varma',
-    designation: 'Co-Founder',
-    company: 'Kavach FinTech Solutions',
-    service: 'Technology & Workflow Automation',
-    feedback: 'Aadhil and the tech team engineered our customer portal and automated WhatsApp notifications flawlessly. Their technical execution is clean, modern, and rapid.',
-    rating: 5
-  },
-  {
-    name: 'Pooja Anand',
-    designation: 'Head of Operations',
-    company: 'UrbanCraft Living',
-    service: 'Accounts & Backend Support',
-    feedback: 'Our books and vendor reconciliations are now updated like clockwork. The monthly MIS reports give our board exact clarity on margins and cash burn.',
-    rating: 5
   }
 ];

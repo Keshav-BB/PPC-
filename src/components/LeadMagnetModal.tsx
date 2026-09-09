@@ -183,6 +183,9 @@ export default function LeadMagnetModal({ isOpen, onClose, magnet }: LeadMagnetM
                 <Download className="w-4 h-4" />
                 <span>Get Free Instant Access</span>
               </button>
+              <p className="text-[10px] text-slate-400 text-center mt-2 leading-tight">
+                For general informational use only. Requirements vary by entity, jurisdiction and circumstances. Professional review may be required before implementation.
+              </p>
             </form>
           )}
         </div>
