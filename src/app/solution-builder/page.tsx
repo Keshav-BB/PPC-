@@ -102,7 +102,7 @@ export default function SolutionBuilderPage() {
               </div>
               <div className="pt-1 flex justify-between">
                 <span>Assigned Account SPOC:</span>
-                <span className="font-bold text-slate-900">Kesavan (Working Partner)</span>
+                <span className="font-bold text-slate-900">Senior Partner SPOC</span>
               </div>
               <div className="flex justify-between">
                 <span>Expected Proposal Delivery:</span>
@@ -329,7 +329,7 @@ export default function SolutionBuilderPage() {
               <div className="pt-6 mt-6 border-t border-slate-100 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <div className="text-xs text-slate-500 flex items-center gap-1.5">
                   <ShieldCheck className="w-4 h-4 text-emerald-600" />
-                  <span>Strict confidentiality. Assigned to Partner SPOC Kesavan.</span>
+                  <span>Strict confidentiality. Assigned to your designated Partner SPOC.</span>
                 </div>
 
                 <button

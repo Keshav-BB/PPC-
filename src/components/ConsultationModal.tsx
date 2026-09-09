@@ -92,7 +92,7 @@ export default function ConsultationModal({ isOpen, onClose, defaultService }: C
             Build Your Business. We’ll Build the Systems Behind It.
           </h3>
           <p className="text-slate-300 text-xs sm:text-sm mt-1">
-            Directly with our leadership team (SPOC Kesavan / Keerthika) for structured execution.
+            Directly with our senior partner leadership team for structured execution.
           </p>
 
           {!submitted && (
@@ -129,7 +129,7 @@ export default function ConsultationModal({ isOpen, onClose, defaultService }: C
               <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-left max-w-md mx-auto space-y-2 text-xs text-slate-700">
                 <div className="flex justify-between">
                   <span className="text-slate-500">Assigned SPOC:</span>
-                  <span className="font-semibold text-slate-900">Kesavan (Working Partner)</span>
+                  <span className="font-semibold text-slate-900">Dedicated Senior Partner</span>
                 </div>
                 <div className="flex justify-between">
                   <span className="text-slate-500">Contact Number:</span>

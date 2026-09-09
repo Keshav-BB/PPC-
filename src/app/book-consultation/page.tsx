@@ -65,7 +65,7 @@ export default function BookConsultationPage() {
             Book a Business Consultation
           </h1>
           <p className="mt-4 text-base text-slate-600 leading-relaxed">
-            Speak directly with our leadership team (Working Partners Keerthika & Kesavan) to assess your business setup, HR, payroll, technology, and operations.
+            Speak directly with our partner leadership team to assess your business setup, HR, payroll, technology, and operations.
           </p>
         </div>
 
@@ -84,7 +84,7 @@ export default function BookConsultationPage() {
             <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200 text-left max-w-md mx-auto text-xs space-y-2 text-slate-700">
               <div className="flex justify-between">
                 <span>Accountable SPOC:</span>
-                <span className="font-bold text-slate-900">Kesavan (Working Partner)</span>
+                <span className="font-bold text-slate-900">Senior Partner SPOC</span>
               </div>
               <div className="flex justify-between">
                 <span>Preferred Mode:</span>

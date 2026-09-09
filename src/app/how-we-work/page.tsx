@@ -176,7 +176,7 @@ export default function HowWeWorkPage() {
           </h2>
 
           <p className="text-xs sm:text-sm text-slate-300 max-w-xl mx-auto leading-relaxed">
-            You will never be handed off to junior call centers. Working Partner Kesavan directly oversees client operations and delivery syncs, ensuring your business systems are executed with precision.
+            You will never be handed off to junior call centers. Our dedicated Client Operations Partners directly oversee client delivery syncs, ensuring your business systems are executed with precision.
           </p>
 
           <div className="pt-4 flex flex-col sm:flex-row justify-center gap-3">

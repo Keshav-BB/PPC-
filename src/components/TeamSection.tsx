@@ -81,7 +81,7 @@ export default function TeamSection() {
                 One Accountable SPOC for Every Client
               </h3>
               <p className="text-xs text-slate-300 mt-3 leading-relaxed">
-                You never have to chase multiple developers, HR coordinators, or tax filers. Your assigned Single Point of Contact (SPOC), headed by Working Partner Kesavan, takes direct responsibility for requirements gathering, team synchronization, and milestone delivery.
+                You never have to chase multiple developers, HR coordinators, or tax filers. Your assigned Single Point of Contact (SPOC) takes direct responsibility for requirements gathering, team synchronization, and milestone delivery.
               </p>
 
               <div className="mt-5 p-4 rounded-2xl bg-white/10 text-xs space-y-1.5 text-slate-200">

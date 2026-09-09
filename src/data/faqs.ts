@@ -13,7 +13,7 @@ export const generalFaqs: FAQItem[] = [
   {
     category: 'General',
     question: 'Who will be my primary contact person?',
-    answer: 'Every client is assigned an accountable Single Point of Contact (SPOC)—led by our Working Partner Kesavan—who coordinates all requirements across our internal HR, Payroll, Tech, and Operations specialists, so you never have to chase multiple vendors.'
+    answer: 'Every client is assigned an accountable Single Point of Contact (SPOC) who coordinates all requirements across our internal HR, Payroll, Tech, and Operations specialists, so you never have to chase multiple vendors.'
   },
   {
     category: 'Engagement',

@@ -336,7 +336,7 @@ export default function LeadsDashboardPage() {
 
                 <div className="pt-3 border-t border-slate-100 flex flex-col gap-2">
                   <a
-                    href={`https://wa.me/${selectedLead.phone.replace(/[^0-9]/g, '')}?text=Hi%20${encodeURIComponent(selectedLead.fullName)}%2C%20this%20is%20Kesavan%20from%20People%20Point%20Consultants.%20I%20reviewed%20your%20inquiry%20regarding%20${encodeURIComponent(selectedLead.servicesNeeded[0] || 'business setup')}.`}
+                    href={`https://wa.me/${selectedLead.phone.replace(/[^0-9]/g, '')}?text=Hi%20${encodeURIComponent(selectedLead.fullName)}%2C%20this%20is%20the%20team%20at%20People%20Point%20Consultants.%20I%20reviewed%20your%20inquiry%20regarding%20${encodeURIComponent(selectedLead.servicesNeeded[0] || 'business setup')}.`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-full py-2.5 rounded-xl bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs flex items-center justify-center gap-2 shadow-sm transition-all"

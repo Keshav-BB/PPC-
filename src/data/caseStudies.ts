@@ -103,7 +103,7 @@ export const testimonials = [
     designation: 'Managing Director',
     company: 'ProHealth Diagnostic Centers',
     service: 'HR Operations & Process SOPs',
-    feedback: 'Keerthika and Kesavan brought incredible structure to our 35-person team. The KRA/KPI framework and SOPs gave our managers complete clarity and accountability.',
+    feedback: 'The People Point leadership team brought incredible structure to our 35-person team. The KRA/KPI framework and SOPs gave our managers complete clarity and accountability.',
     rating: 5
   },
   {

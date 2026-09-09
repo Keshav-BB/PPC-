@@ -61,10 +61,10 @@ export default function ContactPage() {
               </div>
               <div>
                 <h3 className="text-xl font-black text-white">
-                  Kesavan
+                  Client Operations & Execution
                 </h3>
                 <div className="text-xs font-bold text-rose-400 mt-0.5">
-                  Working Partner | SPOC – Business Operations & Execution
+                  Dedicated Partner & SPOC
                 </div>
                 <p className="text-xs text-slate-300 mt-2.5 leading-relaxed">
                   Acts as your single point of contact, orchestrating all internal teams across legal, human resources, payroll, tech, and operations.

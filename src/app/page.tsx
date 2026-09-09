@@ -308,7 +308,7 @@ export default function HomePage() {
               </div>
               <h3 className="text-lg font-bold text-slate-900">Single Point of Contact (SPOC)</h3>
               <p className="text-xs sm:text-sm text-slate-600 leading-relaxed">
-                Our clients get a designated SPOC (headed by Working Partner Kesavan) who coordinates requirements and internal team delivery, guaranteeing prompt response times.
+                Our clients get a designated Account SPOC who coordinates requirements and internal team delivery, guaranteeing prompt response times.
               </p>
             </div>
 

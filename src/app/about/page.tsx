@@ -80,7 +80,7 @@ export default function AboutPage() {
               <div>
                 <h3 className="text-base font-bold text-slate-900">Direct Partner SPOC Accountability</h3>
                 <p className="text-xs text-slate-600 mt-1 leading-relaxed">
-                  Our partners (Keerthika and Kesavan) personally direct client delivery, ensuring high-touch responsiveness, strict NDAs, and punctual SLA turnaround.
+                  Our leadership partners personally direct client delivery, ensuring high-touch responsiveness, strict NDAs, and punctual SLA turnaround.
                 </p>
               </div>
             </div>

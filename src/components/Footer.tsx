@@ -129,13 +129,13 @@ export default function Footer() {
             <div className="space-y-3.5 text-xs text-slate-400">
               <div className="p-3 rounded-xl bg-slate-900 border border-slate-800">
                 <span className="block text-[11px] text-rose-400 font-bold uppercase">
-                  Accountable SPOC
+                  Accountable Client SPOC
                 </span>
                 <span className="block text-white font-bold mt-0.5">
-                  Kesavan — Working Partner
+                  Business Operations & Execution
                 </span>
                 <span className="block text-slate-400 text-[11px] mt-0.5">
-                  Business Operations & Execution
+                  Dedicated Account Lead
                 </span>
               </div>
 

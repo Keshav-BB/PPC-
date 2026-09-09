@@ -28,15 +28,6 @@ export const coreTeam: TeamMember[] = [
     avatarBg: 'bg-brand-pink'
   },
   {
-    name: 'Kesavan',
-    role: 'Working Partner | SPOC – Business Operations & Execution',
-    headline: 'Single Point of Contact & Multi-Disciplinary Execution',
-    summary: 'Serves as the Single Point of Contact (SPOC) for clients, bridging business requirements with internal delivery teams, orchestrating operations, and ensuring on-time project execution.',
-    expertise: ['Client SPOC', 'Operations Management', 'Process Design', 'Execution Delivery', 'Cross-Functional Sync'],
-    initials: 'KS',
-    avatarBg: 'bg-brand-navy'
-  },
-  {
     name: 'Aadhil',
     role: 'Lead Developer',
     headline: 'Technical Architecture, Systems & Automation',
